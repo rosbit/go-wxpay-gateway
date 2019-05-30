@@ -1,0 +1,7 @@
+{
+	"time-interval": 100,
+	"notify-file": "wxpay-notify.txt",
+	"worker-num": 5,
+	"retry-count": 3,
+	"notify-log-file": "wxpay-notify-log.txt"
+}

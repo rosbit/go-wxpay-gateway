@@ -1,0 +1,47 @@
+{
+	"listen-host": "",
+	"listen-port": 7085,
+	"worker-num": 5,
+	"timeout": 0,
+	"pay-log-file": "wxpay-gateway-log.txt",
+	"notify-pay-url": "http://你的外网可访问域名/wxpay/notify-pay",
+	"notify-refund-url": "http://你的外网可访问域名/wxpay/notify-refund",
+	"notify-file": "wxpay-notify.txt",
+	"endpoints": {
+		"create-pay": "/wxpay/create-pay",
+		"notify-pay": "/wxpay/notify-pay",
+		"create-refund": "/wxpay/create-refund",
+		"notify-refund": "/wxpay/notify-refund",
+		"query-order": "/wxpay/queryorder"
+	},
+	"merchants": [
+		{
+			"name": "mch-name",
+			"mch-id": "商户id", 
+			"mch-app-key": "商户appKey",
+			"mch-cert-pem-file": "./路径指向/apiclient_cert.pem",
+			"mch-key-pem-file": "./路径指向/apiclient_key.pem"
+		},
+		{
+			"name": "mch-name-sandbox",
+			"mch-id": "商户id", 
+			"mch-app-key": "商户appKey",
+			"mch-cert-pem-file": "./路径指向/apiclient_cert.pem",
+			"mch-key-pem-file": "./路径/apiclient_key.pem"
+		}
+	],
+	"apps": [
+		{
+			"name": "app-name",
+			"merchant": "mch-name",
+			"notify-pay-callback": "http://你的外网可访问域名/notify-pay-cb",
+			"notify-refund-callback": "http://你的外网可访问域名/notify-refund-cb"
+		},
+		{
+			"name": "app-name-dev",
+			"merchant": "mch-name-sandbox",
+			"notify-pay-callback": "http://支付应用的域名或ip/notify-pay-cb",
+			"notify-refund-callback": "http://支付应用的域名或ip/notify-refund-cb"
+		}
+	]
+}
