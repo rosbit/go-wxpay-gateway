@@ -45,6 +45,7 @@ func StartService() error {
 	router.Post(endpoints.CreateRefund, rest.CreateRefundment)
 	router.Post(notifyRefundEndpoint,   rest.NotifyRefundment)
 	router.Post(endpoints.QueryOrder,   rest.QueryOrder)
+	router.Post(endpoints.CloseOrder,   rest.CloseOrder)
 
 	api.UseHandler(router)
 

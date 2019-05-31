@@ -86,7 +86,7 @@
            - URI: `/wxpay/create-pay/JSAPI`
            - 请求参数
 
-              ```json
+              ```javascript
               {
                  "appId": "公众号或小程序的appId",
                  "payApp": "go-wxpay-gateway配置文件中的应用名",
@@ -235,10 +235,10 @@
                }
                ```
 
- 1. 查询支付
+ 1. 查询订单
     - 对应配置项: `query-order`
     - 访问方法: POST
-    - URI: 直接根据配置值访问，如`/wxpay/queryorder`
+    - URI: 直接根据配置值访问，如`/wxpay/query-order`
     - **[注意]** 该接口配置成一个内网可以访问的API
     - 请求参数
 
@@ -276,6 +276,30 @@
           "order_id": "o002",
           "attach": "sandbox_attach",
           "time_end": "20190530105704"
+      }
+      ```
+
+ 1. 关闭订单
+    - 对应配置项: `close-order`
+    - 访问方法: POST
+    - URI: 直接根据配置值访问，如`/wxpay/close-order`
+    - **[注意]** 该接口配置成一个内网可以访问的API
+    - 请求参数
+
+      ```json
+      {
+          "appId": "应用的appId",
+          "payApp": "go-wxpay-gateway配置文件中的应用名",
+          "orderId": "支付应用中的唯一订单id号"
+      }
+      ```
+
+    - 响应结果
+
+      ```json
+      {
+          "code": 200,
+          "msg": "OK"
       }
       ```
 

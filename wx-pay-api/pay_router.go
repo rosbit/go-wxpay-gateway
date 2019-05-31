@@ -15,10 +15,12 @@ const (
 	UT_UNIFIED_ORDER = iota
 	UT_ORDER_QUERY
 	UT_REFUND
+	UT_ORDER_CLOSE
 
 	unifiedorder_url_fmt = "https://api.mch.weixin.qq.com/%spay/unifiedorder"
 	orderquery_url_fmt   = "https://api.mch.weixin.qq.com/%spay/orderquery"
 	refund_url_fmt       = "https://api.mch.weixin.qq.com/%spay/refund"
+	orderclose_url_fmt   = "https://api.mch.weixin.qq.com/%spay/closeorder"
 
 	SECURE_API_ROUTER    = "secapi/"
 )
@@ -36,6 +38,8 @@ func _GetApiUrl(urlType int, isSandbox bool) string {
 			urlRouter = SECURE_API_ROUTER
 		}
 		return fmt.Sprintf(refund_url_fmt, urlRouter)
+	case UT_ORDER_CLOSE:
+		return fmt.Sprintf(orderclose_url_fmt, urlRouter)
 	default:
 		return ""
 	}

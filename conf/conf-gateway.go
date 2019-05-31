@@ -21,7 +21,8 @@
          "notify-pay": "/notify-pay",
          "create-refund": "/create-refund",
          "notify-refund": "/notify-refund",
-         "query-order": "/queryorder"
+         "query-order": "/query-order",
+         "close-order": "/close-order"
       },
       "merchants": [
          {
@@ -73,6 +74,7 @@ type EndpointConf struct {
 	CreateRefund  string `json:"create-refund"`
 	NotifyRefund  string `json:"notify-refund"`
 	QueryOrder    string `json:"query-order"`
+	CloseOrder    string `json:"close-order"`
 }
 
 type MerchantConf struct {
