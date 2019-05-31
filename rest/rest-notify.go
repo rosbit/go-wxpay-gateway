@@ -14,7 +14,7 @@ const (
 	NOTIFY_APP_NAME = "app"
 )
 
-func notifyFromWx(w http.ResponseWriter, r *http.Request, prompt string, cbUrlIdx int) {
+func notifyFromWx(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseNotifyBody, prompt string, cbUrlIdx int) {
 	returnCode, returnMsg := "SUCCESS", "OK"
 
 	// 微信支付要求的返回结果格式，参见：https://pay.weixin.qq.com/wiki/doc/api/native.php?chapter=9_7&index=8
@@ -52,36 +52,17 @@ func notifyFromWx(w http.ResponseWriter, r *http.Request, prompt string, cbUrlId
 	}
 
 	// parse xml params
-	switch cbUrlIdx {
-	case conf.NOTIFY_PAY_CB_IDX:
-		params, err := wxpay.ParsePayNotifyBody(prompt, body, mchConf.MchAppKey)
-		if err != nil {
-			returnCode = "FAIL"
-			returnMsg  = "failed to parse xml message"
-			log.Printf("[%s] failed to parse xml messsage %v\n", prompt, err)
-			return
-		}
-		params.AppName, params.CbUrl = appName, cbUrls[conf.NOTIFY_PAY_CB_IDX]
-		utils.SaveResult(params)
-	case conf.NOTIFY_REFUND_CB_IDX:
-		params, err := wxpay.ParseRefundNotifyBody(prompt, body, mchConf.MchAppKey)
-		if err != nil {
-			returnCode = "FAIL"
-			returnMsg  = "failed to parse xml message"
-			log.Printf("[%s] failed to parse xml messsage %v\n", prompt, err)
-			return
-		}
-		params.AppName, params.CbUrl = appName, cbUrls[conf.NOTIFY_REFUND_CB_IDX]
-		utils.SaveResult(params)
-	}
+	params := fnParse(prompt, body, mchConf.MchAppKey)
+	params.AppName, params.CbUrl = appName, cbUrls[cbUrlIdx]
+	utils.SaveResult(params)
 }
 
 // POST /notify-pay/:app
 func NotifyPayment(w http.ResponseWriter, r *http.Request) {
-	notifyFromWx(w, r, "pay-notify", conf.NOTIFY_PAY_CB_IDX)
+	notifyFromWx(w, r, wxpay.ParsePayNotifyBody, "pay-notify", conf.NOTIFY_PAY_CB_IDX)
 }
 
 // POST /notify-refund/:app
 func NotifyRefundment(w http.ResponseWriter, r *http.Request) {
-	notifyFromWx(w, r, "refund-notify", conf.NOTIFY_REFUND_CB_IDX)
+	notifyFromWx(w, r, wxpay.ParseRefundNotifyBody, "refund-notify", conf.NOTIFY_REFUND_CB_IDX)
 }

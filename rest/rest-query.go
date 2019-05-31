@@ -57,6 +57,6 @@ func QueryOrder(w http.ResponseWriter, r *http.Request) {
 		_WriteError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	_WriteJson(w, http.StatusOK, &res.IPayNotifyParams)
+	_WriteJson(w, http.StatusOK, &res.INotifyParams)
 }
 

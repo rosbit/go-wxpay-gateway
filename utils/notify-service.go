@@ -16,7 +16,6 @@ import (
 	"strconv"
 	"time"
 	"log"
-	"github.com/rosbit/go-wxpay-gateway/wx-pay-api"
 	"github.com/rosbit/go-wxpay-gateway/conf"
 )
 
@@ -25,9 +24,16 @@ const (
 	_MAX_HEAD_SIZE = 100
 )
 
+type _LogItem struct {
+	AppName string `json:"app_name"`
+	CbUrl   string `json:"cb_url"`
+	Params  map[string]interface{} `json:"params"`
+}
+
 type _NotifyItem struct {
 	timestamp string
-	params   *wxpay.PayNotifyParams
+	appId     string
+	logItem  *_LogItem
 }
 
 var (
@@ -49,6 +55,29 @@ func init() {
 	_re, _ = regexp.Compile(_LINE_PATTERN)
 }
 
+type _M  map[string]interface{}
+
+func (m _M) getString(val *string, name string) error {
+	if v, ok := m[name]; !ok {
+		return fmt.Errorf("param %s not found", name)
+	} else {
+		switch v.(type) {
+		case string:
+			*val = v.(string)
+			return nil
+		default:
+			return fmt.Errorf("string expected for param %s", name)
+		}
+	}
+}
+
+func parseAppId(params map[string]interface{}) (appId string, err error) {
+	if err = _M(params).getString(&appId, "app_id"); err != nil {
+		return
+	}
+	delete(params, "app_id")
+	return
+}
 // read the content in file `fileName`, notify items one by one
 func Notify(fileName string) {
 	fp, err := os.Open(fileName)
@@ -70,14 +99,18 @@ func Notify(fileName string) {
 		_notifyLog.Printf("[info] item read: %s %s ...", timestamp, string(head(item)))
 
 		// parse the JSON to notification parameters
-		var params wxpay.PayNotifyParams
-		if err = json.Unmarshal(item, &params); err != nil {
+		var logItem _LogItem
+		if err = json.Unmarshal(item, &logItem); err != nil {
 			_notifyLog.Printf("[warn] failed to parse item: %v\n", err)
 			break
 		}
 
+		appId, err := parseAppId(logItem.Params)
+		if err != nil {
+			_notifyLog.Printf("[warn] failed to parse item: %v\n", err)
+		}
 		// notify it
-		_items <- &_NotifyItem{timestamp, &params}
+		_items <- &_NotifyItem{timestamp, appId, &logItem}
 	}
 }
 
@@ -105,23 +138,24 @@ func readOneItem(r *bufio.Reader) (timestamp string, item []byte, err error) {
 	}
 
 	// read item
-	item = make([]byte, int(itemLen))
-	bl, err := r.Read(item)
-	if err != nil {
-		return "", nil, fmt.Errorf("failed to read %d bytes: %v", itemLen, err)
-	}
-	if bl != int(itemLen) {
-		return "", nil, fmt.Errorf("try to read %d bytes, only %d bytes read", itemLen, bl)
+	totalBytes := int(itemLen)
+	item = make([]byte, totalBytes)
+	bytesRead := 0
+	for bytesRead < totalBytes {
+		bl, err := r.Read(item[bytesRead:])
+		if err != nil {
+			return "", nil, fmt.Errorf("failed to read %d bytes: %v", totalBytes, err)
+		}
+		bytesRead += bl
 	}
 	return
 }
 
-func notifyService(params *wxpay.PayNotifyParams) error {
-	cbUrl, realParams := params.CbUrl, &params.IPayNotifyParams
-
+func notifyService(threadNo int, item *_NotifyItem) error {
 	i := 0 // do{} while
 	for {
-		status, content, _, err := wget.PostJson(cbUrl, "POST", realParams, nil)
+		logItem := item.logItem
+		status, content, _, err := wget.PostJson(logItem.CbUrl, "POST", logItem.Params, nil)
 		if err != nil {
 			i++
 			if i >= conf.NotifyConf.RetryCount {
@@ -130,7 +164,10 @@ func notifyService(params *wxpay.PayNotifyParams) error {
 			time.Sleep(10*time.Second)
 			continue
 		}
-		_notifyLog.Printf("[notity-response] status: %d, content: %s\n", status, content)
+		_notifyLog.Printf("[notity-response] #%d [%s %s %s %s]: status: %d, content: %s\n",
+			threadNo, item.timestamp, item.appId, logItem.AppName, logItem.CbUrl,
+			status, content,
+		)
 		return nil
 	}
 }
@@ -144,11 +181,11 @@ func StartNotifyThreads() {
 				if item == nil {
 					break
 				}
-				params := item.params
-				if err := notifyService(params); err != nil {
-					_notifyLog.Printf("[notify-failed] #%d [%s, %s %s %s]: %v\n", i, item.timestamp, params.AppId, params.AppName, params.CbUrl, err)
+				logItem := item.logItem
+				if err := notifyService(i, item); err != nil {
+					_notifyLog.Printf("[notify-failed] #%d [%s %s %s %s]: %v\n", i, item.timestamp, item.appId, logItem.AppName, logItem.CbUrl, err)
 				} else {
-					_notifyLog.Printf("[notify-ok] #%d [%s %s %s %s]\n", i, item.timestamp, params.AppId, params.AppName, params.CbUrl)
+					_notifyLog.Printf("[notify-ok] #%d [%s %s %s %s]\n", i, item.timestamp, item.appId, logItem.AppName, logItem.CbUrl)
 				}
 			}
 		}(i)

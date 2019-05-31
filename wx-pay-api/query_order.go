@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func postQuery(transactionId, orderId string, xml []byte, isSandbox bool, appKey string) (*PayNotifyParams, error) {
+func postQuery(transactionId, orderId string, xml []byte, isSandbox bool, appKey string) (*NotifyParams, error) {
 	var q string
 	if transactionId != "" {
 		q = fmt.Sprintf("transacton #%s", transactionId)
@@ -22,7 +22,7 @@ func postQuery(transactionId, orderId string, xml []byte, isSandbox bool, appKey
 	}
 	_paymentLog.Printf("[query] 2. +++ Result of querying %s: %s\n", q, string(content))
 
-	return ParsePayNotifyBody("query-order-result", content, appKey)
+	return ParsePayNotifyBody("query-order-result", content, appKey), nil
 }
 
 func queryOrder(
@@ -32,7 +32,7 @@ func queryOrder(
 	transactionId string,
 	orderId   string,
 	isSandbox bool,
-) (*PayNotifyParams, error) {
+) (*NotifyParams, error) {
 	/*
 	if isSandbox {
 		var err error
@@ -68,7 +68,7 @@ type FnQueryOrder func(
 	mchAppKey string,
 	id        string,
 	isSandbox bool,
-) (res *PayNotifyParams, err error)
+) (res *NotifyParams, err error)
 
 func QueryByOrderId(
 	appId string,
@@ -76,7 +76,7 @@ func QueryByOrderId(
 	mchAppKey string,
 	orderId string,
 	isSandbox bool,
-) (*PayNotifyParams, error) {
+) (*NotifyParams, error) {
 	return queryOrder(appId, mchId, mchAppKey, "", orderId, isSandbox)
 }
 
@@ -86,6 +86,6 @@ func QueryByTransactionId(
 	mchAppKey string,
 	transactionId string,
 	isSandbox bool,
-) (*PayNotifyParams, error) {
+) (*NotifyParams, error) {
 	return queryOrder(appId, mchId, mchAppKey, transactionId, "", isSandbox)
 }

@@ -12,7 +12,7 @@ type PayCoupon struct {
 	CouponFee  int    `json:"coupon_fee"`
 }
 
-type IPayNotifyParams struct {
+type PayNotifyParams struct {
 	AppId   string    `json:"app_id"`
 	MchId   string    `json:"mch_id"`
 	DeviceInfo string `json:"device_info"`
@@ -37,56 +37,41 @@ type IPayNotifyParams struct {
 	TimeEnd string     `json:"time_end"`
 }
 
-type PayNotifyParams struct {
-	AppName string    `json:"app_name"`
-	CbUrl   string    `json:"cb_url"`
-	IPayNotifyParams
-}
-
-func ParsePayNotifyBody(prompt string, body []byte, appKey string) (*PayNotifyParams, error) {
-	_paymentLog.Printf("[pay-notify] 1. *** %s received: %s\n", prompt, string(body))
-
-	res, err := parseXmlResult(body, appKey)
-	if err != nil {
-		_paymentLog.Printf("[pay-notify] 2. --- %s error: %v\n", prompt, err)
-		return nil, err
-	}
-	_paymentLog.Printf("[pay-notify] 2. ### %s result: %v\n", prompt, res)
-
+// impllementation of interface of INotifyParams
+func (params *PayNotifyParams) parse(res map[string]string, _ error) (err error) {
 	m := _M(res)
-	params := &PayNotifyParams{}
 
 	if err = m.getString(&params.AppId, "appid", true); err != nil {
-		return nil, err
+		return
 	}
 	if err = m.getString(&params.MchId, "mch_id", true); err != nil {
-		return nil, err
+		return
 	}
 	m.getString(&params.DeviceInfo, "device_info", false)
 	if err = m.getString(&params.ResultCode, "result_code", true); err != nil {
-		return nil, err
+		return
 	}
 	m.getString(&params.ErrCode, "err_code", false)
 	m.getString(&params.ErrCodeDes, "err_code_des", false)
 	if err = m.getString(&params.OpenId, "openid", true); err != nil {
-		return nil, err
+		return
 	}
 	if err = m.getBool(&params.IsSubscribe, "is_subscribe", true); err != nil {
-		return nil, err
+		return
 	}
 	if err = m.getString(&params.TradeType, "trade_type", true); err != nil {
-		return nil, err
+		return
 	}
 	if err = m.getString(&params.BankType, "bank_type", true); err != nil {
-		return nil, err
+		return
 	}
 	if err = m.getInt(&params.TotalFee, "total_fee", true); err != nil {
-		return nil, err
+		return
 	}
 	m.getInt(&params.SettlementTotalFee, "settlement_total_fee", false)
 	m.getString(&params.FeeType, "fee_type", false)
 	if err = m.getInt(&params.CashFee, "cash_fee", true); err != nil {
-		return nil, err
+		return
 	}
 	m.getString(&params.CashFeeType, "cash_fee_type", false)
 	m.getInt(&params.CouponFee, "coupon_fee", false)
@@ -100,14 +85,31 @@ func ParsePayNotifyBody(prompt string, body []byte, appKey string) (*PayNotifyPa
 		}
 	}
 	if err = m.getString(&params.TransactionId, "transaction_id", true); err != nil {
-		return nil, err
+		return
 	}
 	if err = m.getString(&params.OrderId, "out_trade_no", true); err != nil {
-		return nil, err
+		return
 	}
 	m.getString(&params.Attach, "attach", false)
 	if err = m.getString(&params.TimeEnd, "time_end", true); err != nil {
-		return nil, err
+		return
 	}
-	return params, err
+	return nil
+}
+
+func ParsePayNotifyBody(prompt string, body []byte, appKey string) *NotifyParams {
+	_paymentLog.Printf("[pay-notify] 1. *** %s received: %s\n", prompt, string(body))
+
+	res, err := parseXmlResult(body, appKey)
+	if err != nil {
+		_paymentLog.Printf("[pay-notify] 2. --- %s error: %v\n", prompt, err)
+		return _NewNotifyError(err)
+	}
+	_paymentLog.Printf("[pay-notify] 2. ### %s result: %v\n", prompt, res)
+
+	params := &PayNotifyParams{}
+	if err = params.parse(res, nil); err != nil {
+		return _NewNotifyError(err)
+	}
+	return &NotifyParams{INotifyParams:params}
 }

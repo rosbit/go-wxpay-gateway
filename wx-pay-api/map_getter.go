@@ -1,3 +1,5 @@
+// +build gateway
+
 package wxpay
 
 import (

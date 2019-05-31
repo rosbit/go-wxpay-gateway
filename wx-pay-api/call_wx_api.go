@@ -1,3 +1,5 @@
+// +build gateway getsandbox
+
 package wxpay
 
 import (
