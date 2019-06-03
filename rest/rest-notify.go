@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"io/ioutil"
-	"github.com/rosbit/go-wxpay-gateway/conf"
-	"github.com/rosbit/go-wxpay-gateway/wx-pay-api"
-	"github.com/rosbit/go-wxpay-gateway/utils"
+	"go-wxpay-gateway/conf"
+	"go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/utils"
 )
 
 const (

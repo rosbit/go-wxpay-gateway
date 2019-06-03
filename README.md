@@ -30,7 +30,7 @@
 
     ```bash
     $ git clone https://github.com/rosbit/go-wxpay-gateway
-    $ cd go-wx-gateway
+    $ cd go-wxpay-gateway
     $ make
     ```
  3. 编译成功，会得到3个可执行程序

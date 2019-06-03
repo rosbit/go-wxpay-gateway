@@ -11,10 +11,10 @@ import (
 	"github.com/gernest/alien"
 	"net/http"
 	"fmt"
-	"github.com/rosbit/go-wxpay-gateway/conf"
-	"github.com/rosbit/go-wxpay-gateway/rest"
-	"github.com/rosbit/go-wxpay-gateway/wx-pay-api"
-	"github.com/rosbit/go-wxpay-gateway/utils"
+	"go-wxpay-gateway/conf"
+	"go-wxpay-gateway/rest"
+	"go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/utils"
 )
 
 func StartService() error {

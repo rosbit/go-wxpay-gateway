@@ -4,8 +4,8 @@
 package main
 
 import (
-	"github.com/rosbit/go-wxpay-gateway/wx-pay-api"
-	"github.com/rosbit/go-wxpay-gateway/conf"
+	"go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/conf"
 	"fmt"
 )
 

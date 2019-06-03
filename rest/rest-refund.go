@@ -2,8 +2,8 @@ package rest
 
 import (
 	"net/http"
-	"github.com/rosbit/go-wxpay-gateway/conf"
-	"github.com/rosbit/go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/conf"
+	"go-wxpay-gateway/wx-pay-api"
 )
 
 // POST /refundment

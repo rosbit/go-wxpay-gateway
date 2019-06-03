@@ -7,8 +7,8 @@ package main
 
 import (
 	lm "github.com/rosbit/logmerger"
-	"github.com/rosbit/go-wxpay-gateway/conf"
-	"github.com/rosbit/go-wxpay-gateway/utils"
+	"go-wxpay-gateway/conf"
+	"go-wxpay-gateway/utils"
 )
 
 func StartService() error {

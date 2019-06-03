@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"time"
 	"log"
-	"github.com/rosbit/go-wxpay-gateway/conf"
+	"go-wxpay-gateway/conf"
 )
 
 const (

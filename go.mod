@@ -1,4 +1,4 @@
-module github.com/rosbit/go-wxpay-gateway
+module go-wxpay-gateway
 
 go 1.12
 
