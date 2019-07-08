@@ -54,6 +54,9 @@ func ParseRefundResultBody(prompt string, body []byte, appKey string) (*RefundRe
 	if err = m.getString(&params.MchId, "mch_id", true); err != nil {
 		return nil, err
 	}
+	if err = m.getString(&params.ResultCode, "result_code", true); err != nil {
+		return nil, err
+	}
 	m.getString(&params.ErrCode, "err_code", false)
 	m.getString(&params.ErrCodeDes, "err_code_des", false)
 	if err = m.getString(&params.TransactionId, "transaction_id", true); err != nil {

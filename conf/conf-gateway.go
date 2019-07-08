@@ -22,7 +22,9 @@
          "create-refund": "/create-refund",
          "notify-refund": "/notify-refund",
          "query-order": "/query-order",
-         "close-order": "/close-order"
+         "close-order": "/close-order",
+         "transfer": "/transfer",
+         "query-transfer": "/query-transfer"
       },
       "merchants": [
          {
@@ -75,6 +77,8 @@ type EndpointConf struct {
 	NotifyRefund  string `json:"notify-refund"`
 	QueryOrder    string `json:"query-order"`
 	CloseOrder    string `json:"close-order"`
+	Transfer      string
+	QueryTransfer string `json:"query-transfer"`
 }
 
 type MerchantConf struct {

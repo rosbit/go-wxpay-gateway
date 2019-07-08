@@ -13,7 +13,9 @@
 		"create-refund": "/wxpay/create-refund",
 		"notify-refund": "/wxpay/notify-refund",
 		"query-order": "/wxpay/query-order",
-		"close-order": "/wxpay/close-order"
+		"close-order": "/wxpay/close-order",
+		"transfer": "/transfer",
+		"query-transfer": "/query-transfer"
 	},
 	"merchants": [
 		{
