@@ -28,5 +28,5 @@ func _NewNotifyError(err error) *NotifyParams {
 	return &NotifyParams{INotifyParams:e}
 }
 
-type FnParseNotifyBody func(prompt string, body []byte, appKey string) *NotifyParams
+type FnParseNotifyBody func(prompt string, body []byte, apiKey string) *NotifyParams
 

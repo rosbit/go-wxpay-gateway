@@ -74,7 +74,7 @@ func createWxPay(w http.ResponseWriter, r *http.Request) {
 	prepayId, reqJSAPI, err := wxpay.JSAPIPay(
 		jsapiParam.AppId,
 		mchConf.MchId,
-		mchConf.MchAppKey,
+		mchConf.MchApiKey,
 		jsapiParam.Goods,
 		jsapiParam.Udd,
 		jsapiParam.OrderId,
@@ -139,7 +139,7 @@ func createNativePay(w http.ResponseWriter, r *http.Request) {
 	prepayId, codeUrl, err := wxpay.NativePay(
 		nativeParam.AppId,
 		mchConf.MchId,
-		mchConf.MchAppKey,
+		mchConf.MchApiKey,
 		nativeParam.Goods,
 		nativeParam.Udd,
 		nativeParam.OrderId,
@@ -202,7 +202,7 @@ func createAppPay(w http.ResponseWriter, r *http.Request) {
 	prepayId, reqAppPay, err := wxpay.AppPay(
 		appParam.AppId,
 		mchConf.MchId,
-		mchConf.MchAppKey,
+		mchConf.MchApiKey,
 		appParam.Goods,
 		appParam.Udd,
 		appParam.OrderId,
@@ -295,7 +295,7 @@ func createH5Pay(w http.ResponseWriter, r *http.Request) {
 	prepayId, payUrl, err := wxpay.H5Pay(
 		h5Param.AppId,
 		mchConf.MchId,
-		mchConf.MchAppKey,
+		mchConf.MchApiKey,
 		h5Param.Goods,
 		h5Param.Udd,
 		h5Param.OrderId,

@@ -4,7 +4,6 @@ import (
 	"github.com/gernest/alien"
 	"net/http"
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
 )
 
@@ -37,12 +36,7 @@ func _ReadJson(r *http.Request, res interface{}) (int, error) {
 		return http.StatusBadRequest, fmt.Errorf("bad request")
 	}
 	defer r.Body.Close()
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	// fmt.Printf("body: %s\n", string(b))
-	if err = json.Unmarshal(b, res); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(res); err != nil {
 		return http.StatusInternalServerError, err
 	}
 	return http.StatusOK, nil

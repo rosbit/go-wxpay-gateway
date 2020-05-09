@@ -9,7 +9,7 @@ import (
 func Transfer(
 	appId     string,
 	mchId     string,
-	mchAppKey string,
+	mchApiKey string,
 	tradeNo   string,
 	openId    string,
 	userName  string,
@@ -37,16 +37,16 @@ func Transfer(
 	addTag(xml, tags, "desc",     desc,                       false)
 	addTag(xml, tags, "spbill_create_ip",  ip,                false)
 	// sign
-	signature := createMd5Signature(tags, mchAppKey)
+	signature := createMd5Signature(tags, mchApiKey)
 	addTag(xml, tags, "sign", signature, false)
 
 	xmlstr := xml.toXML()
 	// fmt.Printf("xml: %s\n", string(xmlstr))
 
-	return postTransfer(tradeNo, mchAppKey, certFile, keyFile, xmlstr, isSandbox)
+	return postTransfer(tradeNo, mchApiKey, certFile, keyFile, xmlstr, isSandbox)
 }
 
-func postTransfer(tradeNo, appKey, certFile, keyFile string, xml []byte, isSandbox bool) (*TransferResult, error) {
+func postTransfer(tradeNo, apiKey, certFile, keyFile string, xml []byte, isSandbox bool) (*TransferResult, error) {
 	_paymentLog.Printf("[transfer] 1. ### Before POSTing transfer #%s: %s\n", tradeNo, string(xml))
 	transfer_url := _GetApiUrl(UT_TRANSFER, isSandbox)
 	content, err := _CallSecureWxAPI(transfer_url, "POST", xml, certFile, keyFile)
@@ -56,5 +56,5 @@ func postTransfer(tradeNo, appKey, certFile, keyFile string, xml []byte, isSandb
 	}
 	_paymentLog.Printf("[transfer] 2. +++ Result of POSTing transfer #%s: %s\n", tradeNo, string(content))
 
-	return ParseTransferResultBody("transfer result", content, appKey)
+	return ParseTransferResultBody("transfer result", content, apiKey)
 }

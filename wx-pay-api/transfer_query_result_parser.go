@@ -23,8 +23,8 @@ type QueryTransferResult struct {
 	Desc        string
 }
 
-func ParseQueryTransferResult(prompt string, body []byte, appKey string) (*QueryTransferResult, error) {
-	res, err := parseXmlResult(body, appKey)
+func ParseQueryTransferResult(prompt string, body []byte, apiKey string) (*QueryTransferResult, error) {
+	res, err := parseXmlResult(body, apiKey)
 	if err != nil {
 		_paymentLog.Printf("[query-transfer-result] --- %s error: %v\n", prompt, err)
 		return nil, err

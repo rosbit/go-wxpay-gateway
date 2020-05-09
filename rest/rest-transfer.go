@@ -46,7 +46,7 @@ func Transfer(w http.ResponseWriter, r *http.Request) {
 	res, err := wxpay.Transfer(
 		transferParam.AppId,
 		mchConf.MchId,
-		mchConf.MchAppKey,
+		mchConf.MchApiKey,
 		transferParam.TradeNo,
 		transferParam.OpenId,
 		transferParam.UserName,

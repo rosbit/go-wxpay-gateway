@@ -10,7 +10,7 @@ const (
 	SANDBOX_FEE = 101
 )
 
-func postOrder(orderId string, appKey string, xml []byte, isSandbox bool) (map[string]string, error) {
+func postOrder(orderId string, apiKey string, xml []byte, isSandbox bool) (map[string]string, error) {
 	_paymentLog.Printf("[payment] 1. ### Before POSTing order #%s: %s\n", orderId, string(xml))
 	unifiedorder_url := _GetApiUrl(UT_UNIFIED_ORDER, isSandbox)
 	content, err := _CallWxAPI(unifiedorder_url, "POST", xml)
@@ -20,13 +20,13 @@ func postOrder(orderId string, appKey string, xml []byte, isSandbox bool) (map[s
 	}
 	_paymentLog.Printf("[payment] 2. +++ Result of POSTing order #%s: %s\n", orderId, string(content))
 
-	return parseXmlResult(content, appKey)
+	return parseXmlResult(content, apiKey)
 }
 
 func payOrder(
 	appId string,
 	mchId string,
-	mchAppKey string,
+	mchApiKey string,
 	deviceInfo string,
 	payBody string,
 	cbParams string,
@@ -59,13 +59,13 @@ func payOrder(
 		addTag(xml, tags, "scene_info", string(sceneInfo), false)
 	}
 	// sign
-	signature := createMd5Signature(tags, mchAppKey)
+	signature := createMd5Signature(tags, mchApiKey)
 	addTag(xml, tags, "sign", signature, false)
 
 	xmlstr := xml.toXML()
 	// fmt.Printf("xml: %s\n", string(xmlstr))
 
-	if res, err = postOrder(orderId, mchAppKey, xmlstr, isSandbox); err != nil {
+	if res, err = postOrder(orderId, mchApiKey, xmlstr, isSandbox); err != nil {
 		return "", nil, err
 	}
 

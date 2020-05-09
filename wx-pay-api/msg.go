@@ -43,7 +43,7 @@ func addTag(xml *xmlGenerator, tags map[string]string, tagName string, value str
 	}
 }
 
-func createMd5Signature(params map[string]string, appKey string) string {
+func createMd5Signature(params map[string]string, apiKey string) string {
 	// sort keys
 	keys := make([]string, len(params))
 	i := 0
@@ -71,7 +71,7 @@ func createMd5Signature(params map[string]string, appKey string) string {
 	}
 
 	io.WriteString(stringA, "&key=")
-	io.WriteString(stringA, appKey)
+	io.WriteString(stringA, apiKey)
 
 	// MD5
 	sign := stringA.Sum(nil)
@@ -119,7 +119,7 @@ func xml2map(body []byte) (map[string]string, error) {
 	return xml2mapWithRoot(body, "xml")
 }
 
-func parseXmlResult(body []byte, appKey string) (map[string]string, error) {
+func parseXmlResult(body []byte, apiKey string) (map[string]string, error) {
 	res, err := xml2map(body)
 	if err != nil {
 		return nil, err
@@ -130,7 +130,7 @@ func parseXmlResult(body []byte, appKey string) (map[string]string, error) {
 		return nil, fmt.Errorf("no signature in result")
 	} else {
 		delete(res, "sign")
-		createdSign := createMd5Signature(res, appKey)
+		createdSign := createMd5Signature(res, apiKey)
 		if sign != createdSign {
 			return nil, fmt.Errorf("signature not matched: %s != %s", sign, createdSign)
 		}

@@ -21,14 +21,14 @@
 		{
 			"name": "mch-name",
 			"mch-id": "商户id", 
-			"mch-app-key": "商户appKey",
+			"mch-api-key": "商户apiKey",
 			"mch-cert-pem-file": "./路径指向/apiclient_cert.pem",
 			"mch-key-pem-file": "./路径指向/apiclient_key.pem"
 		},
 		{
 			"name": "mch-name-sandbox",
 			"mch-id": "商户id", 
-			"mch-app-key": "商户appKey",
+			"mch-api-key": "商户apiKey",
 			"mch-cert-pem-file": "./路径指向/apiclient_cert.pem",
 			"mch-key-pem-file": "./路径/apiclient_key.pem"
 		}

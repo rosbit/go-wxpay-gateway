@@ -10,15 +10,15 @@ import (
 var (
 	AppId string
 	MchId string
-	MchAppKey string
+	MchApiKey string
 )
 
 func CheckGlobalConf() error {
 	if len(os.Args) < 4 {
-		return fmt.Errorf("Usage: %s <appId> <mchId> <mchAppKey>", os.Args[0])
+		return fmt.Errorf("Usage: %s <appId> <mchId> <mchApiKey>", os.Args[0])
 	}
 
-	AppId, MchId, MchAppKey = os.Args[1], os.Args[2], os.Args[3]
+	AppId, MchId, MchApiKey = os.Args[1], os.Args[2], os.Args[3]
 	return nil
 }
 

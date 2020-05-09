@@ -36,7 +36,7 @@
  3. 编译成功，会得到3个可执行程序
      - `go-wxpay-gateway`: 微信支付网关程序，可以执行`./go-wxpay-gateway -v`显示程序信息。
      - `go-wxpay-notify`:  支付结果通知服务程序，可以执行`./go-wxpay-notify -v`显示程序信息。
-     - `go-wxpay-getsandbox`: 获取沙箱测试的appKey工具，可以执行`./go-wxpay-getsandbox -v`显示程序信息。
+     - `go-wxpay-getsandbox`: 获取沙箱测试的apiKey工具，可以执行`./go-wxpay-getsandbox -v`显示程序信息。
  4. Linux的二进制版本可以直接进入[releases](https://github.com/rosbit/go-wxpay-gateway/releases)下载
 
 ## 运行方法
@@ -69,11 +69,11 @@
     - `$ CONF_FILE=./wxpay-notify-conf.json ./go-wxpay-notify`
 
 ### go-wxpay-getsandbox运行方法
- - 运行`./go-wxpay-getsandbox <appId> <mchId> <mchAppKey>`
+ - 运行`./go-wxpay-getsandbox <appId> <mchId> <mchApiKey>`
      - 其中&lt;appId&gt;是指公众号、小程序、网页应用等id，请根据应用类型选用正确的appId
      - &lt;mchId&gt;是指商户号，申请商户号的时可以拿到
-     - &lt;mchAppKey&gt;是商户号的appKey，可以进入商户号管理界面设定
- - 运行成功后把沙箱mchAppKey输出到屏幕
+     - &lt;mchApiKey&gt;是商户号的apiKey，可以进入商户号管理界面设定
+ - 运行成功后把沙箱mchApiKey输出到屏幕
 
 ## go-wxpay-gateway服务的接口参数
  1. 创建订单

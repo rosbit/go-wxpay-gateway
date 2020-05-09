@@ -78,18 +78,18 @@ func (params *RefundNotifyParams) parse(res map[string]string, _ error) (err err
 	return nil
 }
 
-func _DecryptRefundNotify(reqInfo string, appKey string) ([]byte, error) {
+func _DecryptRefundNotify(reqInfo string, apiKey string) ([]byte, error) {
 	oriReq, err := base64.StdEncoding.DecodeString(reqInfo)
 	if err != nil {
 		return nil, err
 	}
 	h := md5.New()
-	io.WriteString(h, appKey)
+	io.WriteString(h, apiKey)
 	key := []byte(fmt.Sprintf("%x", h.Sum(nil))) // [32]byte
 	return goaes.AesDecrypt(oriReq, key)
 }
 
-func ParseRefundNotifyBody(prompt string, body []byte, appKey string) *NotifyParams {
+func ParseRefundNotifyBody(prompt string, body []byte, apiKey string) *NotifyParams {
 	_paymentLog.Printf("[refund-notify] 1. *** %s received: %s\n", prompt, string(body))
 
 	res, err := xml2map(body)
@@ -103,7 +103,7 @@ func ParseRefundNotifyBody(prompt string, body []byte, appKey string) *NotifyPar
 		_paymentLog.Printf("[refund-notify] 3. ### %s no req_info found\n", prompt)
 		return _NewNotifyError(fmt.Errorf("no req_info found in notify result"))
 	}
-	reqInfoXml, err := _DecryptRefundNotify(req_info, appKey)
+	reqInfoXml, err := _DecryptRefundNotify(req_info, apiKey)
 	if err != nil {
 		return _NewNotifyError(err)
 	}

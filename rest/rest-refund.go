@@ -57,7 +57,7 @@ func CreateRefundment(w http.ResponseWriter, r *http.Request) {
 	refundNotifyParams, err := refundFn(
 		refundParam.AppId,
 		mchConf.MchId,
-		mchConf.MchAppKey,
+		mchConf.MchApiKey,
 		id,
 		refundParam.RefundId,
 		refundParam.TotalFee,

@@ -34,7 +34,7 @@ func QueryTransfer(w http.ResponseWriter, r *http.Request) {
 	res, err := wxpay.QueryTransfer(
 		queryParam.AppId,
 		mchConf.MchId,
-		mchConf.MchAppKey,
+		mchConf.MchApiKey,
 		queryParam.TradeNo,
 		mchConf.MchCertPemFile,
 		mchConf.MchKeyPemFile,

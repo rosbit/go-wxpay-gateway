@@ -38,7 +38,7 @@ func CloseOrder(w http.ResponseWriter, r *http.Request) {
 	if err := wxpay.CloseOrder(
 		closeParam.AppId,
 		mchConf.MchId,
-		mchConf.MchAppKey,
+		mchConf.MchApiKey,
 		closeParam.OrderId,
 		isSandbox,
 	); err != nil {

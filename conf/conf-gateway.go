@@ -30,7 +30,7 @@
          {
              "name": "mch1",
              "mch-id": "", 
-             "mch-app-key": "",
+             "mch-api-key": "",
              "mch-cert-pem-file": "your-cert-pem-file-name, only used when refunding",
              "mch-key-pem-file": "your-key-pem-file-name, only used when refunding"
          }
@@ -59,7 +59,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-	"io/ioutil"
 	"encoding/json"
 )
 
@@ -84,7 +83,7 @@ type EndpointConf struct {
 type MerchantConf struct {
 	Name      string
 	MchId     string `json:"mch-id"`
-	MchAppKey string `json:"mch-app-key"`
+	MchApiKey string `json:"mch-api-key"`
 	MchCertPemFile string `json:"mch-cert-pem-file"`
 	MchKeyPemFile  string `json:"mch-key-pem-file"`
 }
@@ -142,11 +141,12 @@ func CheckGlobalConf() error {
 		return err
 	}
 
-	b, err := ioutil.ReadFile(confFile)
+	fp, err := os.Open(confFile)
 	if err != nil {
 		return err
 	}
-	if err := json.Unmarshal(b, &ServiceConf); err != nil {
+	defer fp.Close()
+	if err = json.NewDecoder(fp).Decode(&ServiceConf); err != nil {
 		return err
 	}
 

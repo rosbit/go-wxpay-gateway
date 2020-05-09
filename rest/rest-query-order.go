@@ -49,7 +49,7 @@ func QueryOrder(w http.ResponseWriter, r *http.Request) {
 	res, err := queryFunc(
 		queryParam.AppId,
 		mchConf.MchId,
-		mchConf.MchAppKey,
+		mchConf.MchApiKey,
 		id,
 		isSandbox,
 	)

@@ -6,12 +6,12 @@ import (
 	"fmt"
 )
 
-type FnRefund func(appId,mchId,mchAppKey,id,refundId string,totalFee,refundFee int, refundReason,refundNotify,certFile,keyFile string, isSandbox bool) (*RefundResultParams, error)
+type FnRefund func(appId,mchId,mchApiKey,id,refundId string,totalFee,refundFee int, refundReason,refundNotify,certFile,keyFile string, isSandbox bool) (*RefundResultParams, error)
 
 func RefundByTransactionId(
 	appId     string,
 	mchId     string,
-	mchAppKey string,
+	mchApiKey string,
 	transactionId string, // 微信生成的订单号
 	refundId      string, // 商户自己的退款编号 char(32)
 	totalFee  int, // 订单总金额，单位为分
@@ -22,13 +22,13 @@ func RefundByTransactionId(
 	keyFile  string,
 	isSandbox bool,
 ) (*RefundResultParams, error) {
-	return refund(appId, mchId, mchAppKey, transactionId, "", refundId, totalFee, refundFee, refundReason, refundNotify, certFile, keyFile, isSandbox)
+	return refund(appId, mchId, mchApiKey, transactionId, "", refundId, totalFee, refundFee, refundReason, refundNotify, certFile, keyFile, isSandbox)
 }
 
 func RefundByOrderId(
 	appId     string,
 	mchId     string,
-	mchAppKey string,
+	mchApiKey string,
 	orderId   string, // 商户自己的唯一订单号
 	refundId  string, // 商户自己的退款编号 char(32)
 	totalFee  int, // 订单总金额，单位为分
@@ -39,13 +39,13 @@ func RefundByOrderId(
 	keyFile  string,
 	isSandbox bool,
 ) (*RefundResultParams, error) {
-	return refund(appId, mchId, mchAppKey, "", orderId, refundId, totalFee, refundFee, refundReason, refundNotify, certFile, keyFile, isSandbox)
+	return refund(appId, mchId, mchApiKey, "", orderId, refundId, totalFee, refundFee, refundReason, refundNotify, certFile, keyFile, isSandbox)
 }
 
 func refund(
 	appId     string,
 	mchId     string,
-	mchAppKey string,
+	mchApiKey string,
 	transactionId string, // 微信生成的订单号
 	orderId       string, // 商户自己的唯一订单号
 	refundId  string, // 商户自己的退款编号 char(32)
@@ -75,16 +75,16 @@ func refund(
 		addTag(xml, tags, "notify_url",  refundNotify,   true)
 	//}
 	// sign
-	signature := createMd5Signature(tags, mchAppKey)
+	signature := createMd5Signature(tags, mchApiKey)
 	addTag(xml, tags, "sign", signature, false)
 
 	xmlstr := xml.toXML()
 	// fmt.Printf("xml: %s\n", string(xmlstr))
 
-	return postRefund(refundId, mchAppKey, certFile, keyFile, xmlstr, isSandbox)
+	return postRefund(refundId, mchApiKey, certFile, keyFile, xmlstr, isSandbox)
 }
 
-func postRefund(refundId, appKey, certFile, keyFile string, xml []byte, isSandbox bool) (*RefundResultParams, error) {
+func postRefund(refundId, apiKey, certFile, keyFile string, xml []byte, isSandbox bool) (*RefundResultParams, error) {
 	_paymentLog.Printf("[refund] 1. ### Before POSTing refund #%s: %s\n", refundId, string(xml))
 	refund_url := _GetApiUrl(UT_REFUND, isSandbox)
 	content, err := _CallSecureWxAPI(refund_url, "POST", xml, certFile, keyFile)
@@ -94,6 +94,6 @@ func postRefund(refundId, appKey, certFile, keyFile string, xml []byte, isSandbo
 	}
 	_paymentLog.Printf("[refund] 2. +++ Result of POSTing refund #%s: %s\n", refundId, string(content))
 
-	return ParseRefundResultBody("refund result", content, appKey)
+	return ParseRefundResultBody("refund result", content, apiKey)
 }
 

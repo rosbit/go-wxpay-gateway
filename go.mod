@@ -9,4 +9,5 @@ require (
 	github.com/rosbit/go-wget v1.0.3
 	github.com/rosbit/logmerger v0.0.1
 	github.com/urfave/negroni v1.0.0
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )

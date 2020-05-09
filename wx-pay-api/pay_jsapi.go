@@ -10,7 +10,7 @@ import (
 func JSAPIPay(
 	appId  string,
 	mchId  string,
-	mchAppKey string,
+	mchApiKey string,
 	payBody   string,
 	cbParams  string,
 	orderId string,
@@ -22,21 +22,21 @@ func JSAPIPay(
 ) (prepay_id string, reqJSAPI map[string]string, err error) {
 	if isSandbox {
 		/*
-		if mchAppKey, err = GetSandbox(appId, mchId, mchAppKey); err != nil {
+		if mchApiKey, err = GetSandbox(appId, mchId, mchApiKey); err != nil {
 			return
 		}*/
 		fee = SANDBOX_FEE
 	}
-	prepay_id, _, err = payOrder(appId, mchId, mchAppKey, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "JSAPI", "", openId, nil, isSandbox)
+	prepay_id, _, err = payOrder(appId, mchId, mchApiKey, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "JSAPI", "", openId, nil, isSandbox)
 	if err != nil {
 		_paymentLog.Printf("[JSAPI-payment] 3. --- %v\n", err)
 		return "", nil, err
 	}
 
-	return prepay_id, CreateJSAPIParams(appId, mchAppKey, prepay_id), nil
+	return prepay_id, CreateJSAPIParams(appId, mchApiKey, prepay_id), nil
 }
 
-func CreateJSAPIParams(appId string, mchAppKey string, prepay_id string) map[string]string {
+func CreateJSAPIParams(appId string, mchApiKey string, prepay_id string) map[string]string {
 	params := make(map[string]string, 6)
 	params["appId"]     = appId
 	params["timeStamp"] = fmt.Sprintf("%d", time.Now().Unix())
@@ -44,7 +44,7 @@ func CreateJSAPIParams(appId string, mchAppKey string, prepay_id string) map[str
 	params["package"]   = fmt.Sprintf("prepay_id=%s", prepay_id)
 	params["signType"]  = "MD5"
 
-	paySign := createMd5Signature(params, mchAppKey)
+	paySign := createMd5Signature(params, mchApiKey)
 	params["paySign"]   = paySign
 	_paymentLog.Printf("[payment] ### JSAPI payment params: %v\n", params)
 	return params

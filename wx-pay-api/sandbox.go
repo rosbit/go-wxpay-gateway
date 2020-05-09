@@ -9,7 +9,7 @@ import (
 
 const getsignkey_url = "https://api.mch.weixin.qq.com/sandboxnew/pay/getsignkey"
 
-func GetSandbox(appId string, mchId string, appKey string) (string, error) {
+func GetSandbox(appId string, mchId string, apiKey string) (string, error) {
 	tags := make(map[string]string)
 	xml := newXmlGenerator("xml")
 	addTag(xml, tags, "appid",  appId, false)
@@ -18,11 +18,11 @@ func GetSandbox(appId string, mchId string, appKey string) (string, error) {
 	addTag(xml, tags, "nonce_str", string(_GetRandomBytes(32)), false)
 
 	// sign
-	signature := createMd5Signature(tags, appKey)
+	signature := createMd5Signature(tags, apiKey)
 	addTag(xml, tags, "sign", signature, false)
 
 	xmlstr := xml.toXML()
-	log.Printf("[sandbox] try to get sandbox appKey: %s\n", string(xmlstr))
+	log.Printf("[sandbox] try to get sandbox apiKey: %s\n", string(xmlstr))
 
 	res, err := _CallWxAPI(getsignkey_url, "POST", xmlstr)
 	if err != nil {

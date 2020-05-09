@@ -2,19 +2,20 @@ package wxpay
 
 import (
 	"log"
-	"os"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var (
-	_paymentLogFile *os.File
 	_paymentLog *log.Logger
 )
 
 func InitPaymentLog(logFile string) error {
-	var err error
-	_paymentLogFile, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
+	_paymentLogFile := &lumberjack.Logger{
+		Filename:   logFile,
+		MaxSize:    100, // megabytes
+		MaxBackups: 3,
+		MaxAge:     28, //days
+		Compress:   false, // disabled by default
 	}
 	_paymentLog = log.New(_paymentLogFile, "", log.LstdFlags)
 	return nil

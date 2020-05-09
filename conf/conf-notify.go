@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-	"io/ioutil"
 	"encoding/json"
 )
 
@@ -71,11 +70,12 @@ func CheckGlobalConf() error {
 		return err
 	}
 
-	b, err := ioutil.ReadFile(confFile)
+	fp, err := os.Open(confFile)
 	if err != nil {
 		return err
 	}
-	if err := json.Unmarshal(b, &NotifyConf); err != nil {
+	defer fp.Close()
+	if err = json.NewDecoder(fp).Decode(&NotifyConf); err != nil {
 		return err
 	}
 

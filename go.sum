@@ -10,3 +10,5 @@ github.com/rosbit/logmerger v0.0.1 h1:mNebRSwis/pewR0fUHwDGx6zpxXbroVioljUjQia+p
 github.com/rosbit/logmerger v0.0.1/go.mod h1:wzp/9K8Zu6+onB3moySMgBgXHNlXDj81vHWixaUHes0=
 github.com/urfave/negroni v1.0.0 h1:kIimOitoypq34K7TG7DUaJ9kq/N4Ofuwi1sjz0KipXc=
 github.com/urfave/negroni v1.0.0/go.mod h1:Meg73S6kFm/4PpbYdq35yYWoCZ9mS/YSx+lKnmiohz4=
+gopkg.in/natefinch/lumberjack.v2 v2.0.0 h1:1Lc07Kr7qY4U2YPouBjpCLxpiyxIVoxqXgkXLknAOE8=
+gopkg.in/natefinch/lumberjack.v2 v2.0.0/go.mod h1:l0ndWWf7gzL7RNwBG7wST/UCcT4T24xpD6X8LsfU/+k=

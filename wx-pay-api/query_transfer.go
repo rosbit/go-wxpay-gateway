@@ -2,7 +2,7 @@
 
 package wxpay
 
-func postQueryTransfer(tradeNo, appKey, certFile, keyFile string, xml []byte, isSandbox bool) (*QueryTransferResult, error) {
+func postQueryTransfer(tradeNo, apiKey, certFile, keyFile string, xml []byte, isSandbox bool) (*QueryTransferResult, error) {
 	_paymentLog.Printf("[query-transfer] 1. ### Before Querying tradeNo #%s: %s\n", tradeNo, string(xml))
 	transfer_query_url := _GetApiUrl(UT_TRANSFER_QUERY, isSandbox)
 	content, err := _CallSecureWxAPI(transfer_query_url, "POST", xml, certFile, keyFile)
@@ -12,13 +12,13 @@ func postQueryTransfer(tradeNo, appKey, certFile, keyFile string, xml []byte, is
 	}
 	_paymentLog.Printf("[query-transfer] 2. +++ Result of querying tradeNo #%s: %s\n", tradeNo, string(content))
 
-	return ParseQueryTransferResult("query-transfer-result", content, appKey)
+	return ParseQueryTransferResult("query-transfer-result", content, apiKey)
 }
 
 func QueryTransfer(
 	appId     string,
 	mchId     string,
-	mchAppKey string,
+	mchApiKey string,
 	tradeNo   string,
 	certFile  string,
 	keyFile   string,
@@ -27,7 +27,7 @@ func QueryTransfer(
 	/*
 	if isSandbox {
 		var err error
-		if mchAppKey, err = GetSandbox(appId, mchId, mchAppKey); err != nil {
+		if mchApiKey, err = GetSandbox(appId, mchId, mchApiKey); err != nil {
 			return nil, err
 		}
 	}*/
@@ -41,10 +41,10 @@ func QueryTransfer(
 	addTag(xml, params, "sign_type", "MD5", false)
 
 	// sign
-	signature := createMd5Signature(params, mchAppKey)
+	signature := createMd5Signature(params, mchApiKey)
 	addTag(xml, params, "sign", signature, false)
 
 	xmlstr := xml.toXML()
 
-	return postQueryTransfer(tradeNo, mchAppKey, certFile, keyFile, xmlstr, isSandbox)
+	return postQueryTransfer(tradeNo, mchApiKey, certFile, keyFile, xmlstr, isSandbox)
 }

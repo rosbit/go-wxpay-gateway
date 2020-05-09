@@ -10,7 +10,7 @@ import (
 )
 
 func StartService() error {
-	sandbox_signkey, err := wxpay.GetSandbox(conf.AppId, conf.MchId, conf.MchAppKey)
+	sandbox_signkey, err := wxpay.GetSandbox(conf.AppId, conf.MchId, conf.MchApiKey)
 	if err != nil {
 		fmt.Printf("failed: %v\n", err)
 	} else {

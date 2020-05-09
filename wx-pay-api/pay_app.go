@@ -10,7 +10,7 @@ import (
 func AppPay(
 	appId  string,
 	mchId  string,
-	mchAppKey string,
+	mchApiKey string,
 	payBody   string,
 	cbParams  string,
 	orderId string,
@@ -21,21 +21,21 @@ func AppPay(
 ) (prepayId string, reqApp map[string]string, err error) {
 	if isSandbox {
 		/*
-		if mchAppKey, err = GetSandbox(appId, mchId, mchAppKey); err != nil {
+		if mchApiKey, err = GetSandbox(appId, mchId, mchApiKey); err != nil {
 			return
 		}*/
 		fee = SANDBOX_FEE
 	}
-	prepayId, _, err = payOrder(appId, mchId, mchAppKey, "APP", payBody, cbParams, orderId, fee, ip, notifyUrl, "APP", "", "", nil, isSandbox)
+	prepayId, _, err = payOrder(appId, mchId, mchApiKey, "APP", payBody, cbParams, orderId, fee, ip, notifyUrl, "APP", "", "", nil, isSandbox)
 	if err != nil {
 		_paymentLog.Printf("[App-payment] 3. --- %v\n", err)
 		return "", nil, err
 	}
 
-	return prepayId, CreateAppParams(appId, mchAppKey, prepayId, mchId), nil
+	return prepayId, CreateAppParams(appId, mchApiKey, prepayId, mchId), nil
 }
 
-func CreateAppParams(appId string, mchAppKey string, prepayId string, partnerId string) map[string]string {
+func CreateAppParams(appId string, mchApiKey string, prepayId string, partnerId string) map[string]string {
 	params := make(map[string]string, 6)
 	params["appid"]     = appId
 	params["partnerid"] = partnerId
@@ -43,7 +43,7 @@ func CreateAppParams(appId string, mchAppKey string, prepayId string, partnerId 
 	params["package"]   = "Sign=WXPay"
 	params["noncestr"]  = string(_GetRandomBytes(32))
 	params["timestamp"] = fmt.Sprintf("%d", time.Now().Unix())
-	params["sign"]      = createMd5Signature(params, mchAppKey)
+	params["sign"]      = createMd5Signature(params, mchApiKey)
 	_paymentLog.Printf("[App-payment] ### app payment params: %v\n", params)
 	return params
 }

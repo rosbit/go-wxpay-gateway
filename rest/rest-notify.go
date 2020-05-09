@@ -52,7 +52,7 @@ func notifyFromWx(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseN
 	}
 
 	// parse xml params
-	params := fnParse(prompt, body, mchConf.MchAppKey)
+	params := fnParse(prompt, body, mchConf.MchApiKey)
 	params.AppName, params.CbUrl = appName, cbUrls[cbUrlIdx]
 	utils.SaveResult(params)
 }

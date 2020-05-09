@@ -13,8 +13,8 @@ type TransferResult struct {
 	PaymentTime string `json:"payment_time"`
 }
 
-func ParseTransferResultBody(prompt string, body []byte, appKey string) (*TransferResult, error) {
-	res, err := parseXmlResult(body, appKey)
+func ParseTransferResultBody(prompt string, body []byte, apiKey string) (*TransferResult, error) {
+	res, err := parseXmlResult(body, apiKey)
 	if err != nil {
 		_paymentLog.Printf("[transfer-result] --- %s error: %v\n", prompt, err)
 		return nil, err

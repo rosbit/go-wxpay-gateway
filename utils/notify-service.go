@@ -6,6 +6,7 @@
 package utils
 
 import (
+	"gopkg.in/natefinch/lumberjack.v2"
 	"github.com/rosbit/go-wget"
 	"os"
 	"io"
@@ -43,9 +44,12 @@ var (
 )
 
 func InitNotifyLog(logFile string) error {
-	_notifyLogFile, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
+	_notifyLogFile := &lumberjack.Logger{
+		Filename:   logFile,
+		MaxSize:    100, // megabytes
+		MaxBackups: 3,
+		MaxAge:     28, //days
+		Compress:   false, // disabled by default
 	}
 	_notifyLog = log.New(_notifyLogFile, "", log.LstdFlags)
 	return nil
