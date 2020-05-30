@@ -19,7 +19,7 @@ func JSAPIPay(
 	notifyUrl string,
 	openId    string,
 	isSandbox bool,
-) (prepay_id string, reqJSAPI map[string]string, err error) {
+) (prepay_id string, reqJSAPI map[string]string, sent, recv []byte, err error) {
 	if isSandbox {
 		/*
 		if mchApiKey, err = GetSandbox(appId, mchId, mchApiKey); err != nil {
@@ -27,13 +27,12 @@ func JSAPIPay(
 		}*/
 		fee = SANDBOX_FEE
 	}
-	prepay_id, _, err = payOrder(appId, mchId, mchApiKey, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "JSAPI", "", openId, nil, isSandbox)
-	if err != nil {
-		_paymentLog.Printf("[JSAPI-payment] 3. --- %v\n", err)
-		return "", nil, err
+	if prepay_id, _, sent, recv, err = payOrder(appId, mchId, mchApiKey, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "JSAPI", "", openId, nil, isSandbox); err != nil {
+		return
 	}
 
-	return prepay_id, CreateJSAPIParams(appId, mchApiKey, prepay_id), nil
+	reqJSAPI = CreateJSAPIParams(appId, mchApiKey, prepay_id)
+	return
 }
 
 func CreateJSAPIParams(appId string, mchApiKey string, prepay_id string) map[string]string {
@@ -46,6 +45,5 @@ func CreateJSAPIParams(appId string, mchApiKey string, prepay_id string) map[str
 
 	paySign := createMd5Signature(params, mchApiKey)
 	params["paySign"]   = paySign
-	_paymentLog.Printf("[payment] ### JSAPI payment params: %v\n", params)
 	return params
 }

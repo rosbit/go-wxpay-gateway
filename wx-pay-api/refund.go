@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-type FnRefund func(appId,mchId,mchApiKey,id,refundId string,totalFee,refundFee int, refundReason,refundNotify,certFile,keyFile string, isSandbox bool) (*RefundResultParams, error)
+type FnRefund func(appId,mchId,mchApiKey,id,refundId string,totalFee,refundFee int, refundReason,refundNotify,certFile,keyFile string, isSandbox bool) (res *RefundResultParams, sent, recv []byte, err error)
 
 func RefundByTransactionId(
 	appId     string,
@@ -21,7 +21,7 @@ func RefundByTransactionId(
 	certFile string,
 	keyFile  string,
 	isSandbox bool,
-) (*RefundResultParams, error) {
+) (res *RefundResultParams, sent, recv []byte, err error) {
 	return refund(appId, mchId, mchApiKey, transactionId, "", refundId, totalFee, refundFee, refundReason, refundNotify, certFile, keyFile, isSandbox)
 }
 
@@ -38,7 +38,7 @@ func RefundByOrderId(
 	certFile string,
 	keyFile  string,
 	isSandbox bool,
-) (*RefundResultParams, error) {
+) (res *RefundResultParams, sent, recv []byte, err error) {
 	return refund(appId, mchId, mchApiKey, "", orderId, refundId, totalFee, refundFee, refundReason, refundNotify, certFile, keyFile, isSandbox)
 }
 
@@ -56,7 +56,7 @@ func refund(
 	certFile string,
 	keyFile  string,
 	isSandbox bool,
-) (*RefundResultParams, error) {
+) (res *RefundResultParams, xmlstr, recv []byte, err error) {
 	tags := make(map[string]string)
 	xml := newXmlGenerator("xml")
 	addTag(xml, tags, "appid",       appId,      false)
@@ -78,22 +78,20 @@ func refund(
 	signature := createMd5Signature(tags, mchApiKey)
 	addTag(xml, tags, "sign", signature, false)
 
-	xmlstr := xml.toXML()
+	xmlstr = xml.ToXML()
 	// fmt.Printf("xml: %s\n", string(xmlstr))
 
-	return postRefund(refundId, mchApiKey, certFile, keyFile, xmlstr, isSandbox)
+	res, recv, err = postRefund(refundId, mchApiKey, certFile, keyFile, xmlstr, isSandbox)
+	return
 }
 
-func postRefund(refundId, apiKey, certFile, keyFile string, xml []byte, isSandbox bool) (*RefundResultParams, error) {
-	_paymentLog.Printf("[refund] 1. ### Before POSTing refund #%s: %s\n", refundId, string(xml))
+func postRefund(refundId, apiKey, certFile, keyFile string, xml []byte, isSandbox bool) (res *RefundResultParams, recv []byte, err error) {
 	refund_url := _GetApiUrl(UT_REFUND, isSandbox)
-	content, err := _CallSecureWxAPI(refund_url, "POST", xml, certFile, keyFile)
-	if err != nil {
-		_paymentLog.Printf("[refund] 2. --- POST refund #%s failed: %v\n", refundId, err)
-		return  nil, err
+	if recv, err = _CallSecureWxAPI(refund_url, "POST", xml, certFile, keyFile); err != nil {
+		return
 	}
-	_paymentLog.Printf("[refund] 2. +++ Result of POSTing refund #%s: %s\n", refundId, string(content))
 
-	return ParseRefundResultBody("refund result", content, apiKey)
+	res, err = ParseRefundResultBody("refund result", recv, apiKey)
+	return
 }
 

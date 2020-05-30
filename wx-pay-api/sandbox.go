@@ -21,7 +21,7 @@ func GetSandbox(appId string, mchId string, apiKey string) (string, error) {
 	signature := createMd5Signature(tags, apiKey)
 	addTag(xml, tags, "sign", signature, false)
 
-	xmlstr := xml.toXML()
+	xmlstr := xml.ToXML()
 	log.Printf("[sandbox] try to get sandbox apiKey: %s\n", string(xmlstr))
 
 	res, err := _CallWxAPI(getsignkey_url, "POST", xmlstr)

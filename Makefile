@@ -1,12 +1,14 @@
 SHELL=/bin/bash
 
-TAGS = gateway notify getsandbox
+TAGS = gateway getsandbox
+EXES = $(addprefix go-wxpay-,$(TAGS))
 
-all:
-	@for tag in $(TAGS); do \
-		echo "building wxpay-$$tag ..."; \
-		$(MAKE) -s -f make.inc s=static t=$$tag; \
-	done
+.PHONY: $(TAGS)
+all: $(EXES)
+
+go-wxpay-%: %
+	@echo "building $@"
+	$(MAKE) -s -f make.inc s=static t=$*
 
 clean:
 	@for tag in $(TAGS); do \

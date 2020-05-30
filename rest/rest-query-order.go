@@ -7,20 +7,21 @@ import (
 )
 
 // POST /queryorder
-/* {
-      "appId": "appId of mp/mini-prog",
-      "payApp": "name-of-app-in-wxpay-gateway",
-      "transactionId": "transaction_id returned by wx",
-          - or -
-      "orderId": "unique-order-id"
- * }
- */
+// {
+//      "appId": "appId of mp/mini-prog",
+//      "payApp": "name-of-app-in-wxpay-gateway",
+//      "transactionId": "transaction_id returned by wx",
+//          - or -
+//      "orderId": "unique-order-id",
+//      "debug": false|true, default is false
+// }
 func QueryOrder(w http.ResponseWriter, r *http.Request) {
 	var queryParam struct {
 		AppId         string
 		PayApp        string
 		TransactionId string
 		OrderId       string
+		Debug bool
 	}
 	if code, err := _ReadJson(r, &queryParam); err != nil {
 		_WriteError(w, code, err.Error())
@@ -28,7 +29,7 @@ func QueryOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSandbox := _IsSandbox(queryParam.PayApp)
-	mchConf, _, ok := conf.GetAppAttrs(queryParam.PayApp)
+	mchConf, ok := conf.GetAppAttrs(queryParam.PayApp)
 	if !ok {
 		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
 		return
@@ -46,7 +47,7 @@ func QueryOrder(w http.ResponseWriter, r *http.Request) {
 		_WriteError(w, http.StatusBadRequest, "Please specify transactionId or orderId")
 		return
 	}
-	res, err := queryFunc(
+	res, sent, recv, err := queryFunc(
 		queryParam.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
@@ -54,9 +55,11 @@ func QueryOrder(w http.ResponseWriter, r *http.Request) {
 		isSandbox,
 	)
 	if err != nil {
-		_WriteError(w, http.StatusInternalServerError, err.Error())
+		sendResultWithMsg(queryParam.Debug, w, sent, recv, err)
 		return
 	}
-	_WriteJson(w, http.StatusOK, &res.INotifyParams)
+	sendResultWithMsg(queryParam.Debug, w, sent, recv, nil, map[string]interface{} {
+		"result": res,
+	})
 }
 

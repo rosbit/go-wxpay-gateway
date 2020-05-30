@@ -36,14 +36,10 @@ type RefundResultParams struct {
 }
 
 func ParseRefundResultBody(prompt string, body []byte, apiKey string) (*RefundResultParams, error) {
-	// _paymentLog.Printf("[refund-result] 1. *** %s received: %s\n", prompt, string(body))
-
 	res, err := parseXmlResult(body, apiKey)
 	if err != nil {
-		_paymentLog.Printf("[refund-result] --- %s error: %v\n", prompt, err)
 		return nil, err
 	}
-	_paymentLog.Printf("[refund-result] ### %s result: %v\n", prompt, res)
 
 	m := _M(res)
 	params := &RefundResultParams{}

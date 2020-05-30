@@ -16,10 +16,8 @@ type TransferResult struct {
 func ParseTransferResultBody(prompt string, body []byte, apiKey string) (*TransferResult, error) {
 	res, err := parseXmlResult(body, apiKey)
 	if err != nil {
-		_paymentLog.Printf("[transfer-result] --- %s error: %v\n", prompt, err)
 		return nil, err
 	}
-	_paymentLog.Printf("[transfer-result] ### %s result: %v\n", prompt, res)
 
 	m := _M(res)
 	params := &TransferResult{}

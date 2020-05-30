@@ -7,27 +7,42 @@ import (
 	"io/ioutil"
 	"go-wxpay-gateway/conf"
 	"go-wxpay-gateway/wx-pay-api"
-	"go-wxpay-gateway/utils"
 )
 
 const (
 	NOTIFY_APP_NAME = "app"
 )
 
-func notifyFromWx(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseNotifyBody, prompt string, cbUrlIdx int) {
+func verifyNotify(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseNotifyBody, prompt string) {
 	returnCode, returnMsg := "SUCCESS", "OK"
+	var params wxpay.INotifyParams
+	var err error
 
 	// 微信支付要求的返回结果格式，参见：https://pay.weixin.qq.com/wiki/doc/api/native.php?chapter=9_7&index=8
 	// 微信支付退款通知要求的返回结果格式，参见：https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_16&index=10
 	defer func() {
-		_WriteMessage(w, fmt.Sprintf(`<xml>
+		msgForWxpay := fmt.Sprintf(`<xml>
 <return_code><![CDATA[%s]]></return_code>
 <return_msg><![CDATA[%s]]></return_msg>
-</xml>`, returnCode, returnMsg))
+</xml>`, returnCode, returnMsg)
+
+		code := http.StatusOK
+		errMsg := ""
+		if err != nil {
+			code = http.StatusNotAcceptable
+			errMsg = err.Error()
+		}
+		_WriteJson(w, code, map[string]interface{}{
+			"code": code,
+			"msg": errMsg,
+			"params": params,
+			"msgForWxpay": msgForWxpay,
+		})
 	}()
 
-	appName := _PathParam(r, NOTIFY_APP_NAME)
-	mchConf, cbUrls, ok := conf.GetAppAttrs(appName)
+	q := r.URL.Query()
+	appName := q.Get(NOTIFY_APP_NAME)
+	mchConf, ok := conf.GetAppAttrs(appName)
 	if !ok {
 		returnCode = "FAIL"
 		returnMsg  = "bad request"
@@ -43,8 +58,8 @@ func notifyFromWx(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseN
 		return
 	}
 	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
+	var body []byte
+	if body, err = ioutil.ReadAll(r.Body); err != nil {
 		returnCode = "FAIL"
 		returnMsg  = "failed to read body"
 		log.Printf("[%s] %v\n", prompt, err)
@@ -52,17 +67,15 @@ func notifyFromWx(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseN
 	}
 
 	// parse xml params
-	params := fnParse(prompt, body, mchConf.MchApiKey)
-	params.AppName, params.CbUrl = appName, cbUrls[cbUrlIdx]
-	utils.SaveResult(params)
+	params, err = fnParse(prompt, body, mchConf.MchApiKey)
 }
 
-// POST /notify-pay/:app
-func NotifyPayment(w http.ResponseWriter, r *http.Request) {
-	notifyFromWx(w, r, wxpay.ParsePayNotifyBody, "pay-notify", conf.NOTIFY_PAY_CB_IDX)
+// POST /verify-notify-pay?app=<appName>
+func VerifyNotifyPayment(w http.ResponseWriter, r *http.Request) {
+	verifyNotify(w, r, wxpay.ParsePayNotifyBody, "pay-notify")
 }
 
-// POST /notify-refund/:app
-func NotifyRefundment(w http.ResponseWriter, r *http.Request) {
-	notifyFromWx(w, r, wxpay.ParseRefundNotifyBody, "refund-notify", conf.NOTIFY_REFUND_CB_IDX)
+// POST /verify-notify-refund?app=<appName>
+func VerifyNotifyRefundment(w http.ResponseWriter, r *http.Request) {
+	verifyNotify(w, r, wxpay.ParseRefundNotifyBody, "refund-notify")
 }

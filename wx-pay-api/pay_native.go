@@ -18,7 +18,7 @@ func NativePay(
 	notifyUrl string,
 	productId string,
 	isSandbox bool,
-) (prepay_id string, code_url string, err error) {
+) (prepay_id string, code_url string, sent, recv []byte, err error) {
 	if isSandbox {
 		/*
 		if mchApiKey, err = GetSandbox(appId, mchId, mchApiKey); err != nil {
@@ -27,14 +27,12 @@ func NativePay(
 		fee = SANDBOX_FEE
 	}
 	var res map[string]string
-	prepay_id, res, err = payOrder(appId, mchId, mchApiKey, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "NATIVE", productId, "", nil, isSandbox)
-	if err != nil {
-		_paymentLog.Printf("[NATIVE-payment] 3. --- %v\n", err)
-		return "", "", err
+	if prepay_id, res, sent, recv, err = payOrder(appId, mchId, mchApiKey, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "NATIVE", productId, "", nil, isSandbox); err != nil {
+		return
 	}
 	var ok bool
 	if code_url, ok = res["code_url"]; !ok {
-		return "", "", fmt.Errorf("code_url not found")
+		err = fmt.Errorf("code_url not found")
 	}
 	return
 }

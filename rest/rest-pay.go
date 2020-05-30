@@ -1,11 +1,11 @@
 package rest
 
 import (
+	"go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/conf"
 	"net/http"
 	"fmt"
 	"encoding/json"
-	"go-wxpay-gateway/conf"
-	"go-wxpay-gateway/wx-pay-api"
 )
 
 const (
@@ -17,36 +17,39 @@ const (
 	TYPE_H5     = "H5"     // H5支付
 )
 
+var (
+	createWxpays = map[string]http.HandlerFunc {
+		TYPE_WX:     createWxPay,
+		TYPE_NATIVE: createNativePay,
+		TYPE_APP:    createAppPay,
+		TYPE_H5:     createH5Pay,
+	}
+)
+
 // POST /create/:trade_type
 func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	tradeType := _PathParam(r, TRADE_TYPE_NAME)
-	switch tradeType {
-	case TYPE_WX:
-		createWxPay(w, r)
-	case TYPE_NATIVE:
-		createNativePay(w, r)
-	case TYPE_APP:
-		createAppPay(w, r)
-	case TYPE_H5:
-		createH5Pay(w, r)
-	default:
-		_WriteError(w, http.StatusBadRequest, fmt.Sprintf("Unknown trade type \"%s\"", tradeType))
+	if createPay, ok := createWxpays[tradeType]; ok {
+		createPay(w, r)
+		return
 	}
+	_WriteError(w, http.StatusBadRequest, fmt.Sprintf("Unknown trade type \"%s\"", tradeType))
 }
 
-/**
- * JSAPI pay
- * {
-      "appId": "appId of mp/mini-prog",
-      "payApp": "name-of-app-in-wxpay-gateway",
-      "goods": "XXXX-xxxx",
-      "udd": "user defined data as parameters when calling callback",
-      "orderId": "unique order id",
-      "fee": xxx-in-fen,
-      "ip": "ip to create order",
-      "openId": "openId of mp service or mimi app"
- * }
- */
+// POST /create/JSAPI
+// POST BODY:
+// {
+//    "appId": "appId of mp/mini-prog",
+//    "payApp": "name-of-app-in-wxpay-gateway",
+//    "goods": "XXXX-xxxx",
+//    "udd": "user defined data as parameters when calling callback",
+//    "orderId": "unique order id",
+//    "fee": xxx-in-fen,
+//    "ip": "ip to create order",
+//    "openId": "openId of mp service or mimi app",
+//    "notifyUrl": "your notify url, which can be accessed outside",
+//    "debug": false|true, default is false
+// }
 func createWxPay(w http.ResponseWriter, r *http.Request) {
 	var jsapiParam struct {
 		AppId    string
@@ -57,6 +60,8 @@ func createWxPay(w http.ResponseWriter, r *http.Request) {
 		Fee      int
 		Ip       string
 		OpenId   string
+		NotifyUrl string
+		Debug bool
 	}
 
 	if code, err := _ReadJson(r, &jsapiParam); err != nil {
@@ -65,13 +70,13 @@ func createWxPay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSandbox := _IsSandbox(jsapiParam.PayApp)
-	mchConf, _, ok := conf.GetAppAttrs(jsapiParam.PayApp)
+	mchConf, ok := conf.GetAppAttrs(jsapiParam.PayApp)
 	if !ok {
 		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
 
-	prepayId, reqJSAPI, err := wxpay.JSAPIPay(
+	prepayId, reqJSAPI, sent, recv, err := wxpay.JSAPIPay(
 		jsapiParam.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
@@ -80,38 +85,40 @@ func createWxPay(w http.ResponseWriter, r *http.Request) {
 		jsapiParam.OrderId,
 		jsapiParam.Fee,
 		jsapiParam.Ip,
-		_AppendAppName(conf.ServiceConf.NotifyPayUrl, jsapiParam.PayApp),
+		jsapiParam.NotifyUrl,
 		jsapiParam.OpenId,
 		isSandbox,
 	)
 	if err != nil {
-		_WriteError(w, http.StatusInternalServerError, err.Error())
+		sendResultWithMsg(jsapiParam.Debug, w, sent, recv, err)
 		return
 	}
 
-	_WriteJson(w, http.StatusOK, map[string]interface{} {
-		"code": http.StatusOK,
-		"msg": "OK",
+	// 为了和其它接口统一和方便保存, reqJSAPI转换成字符串再返回
+	// 在使用时：先对result做JSON解析，得到jsapi_params后再做一次JSON解析
+	b, _ := json.Marshal(reqJSAPI)
+	sendResultWithMsg(jsapiParam.Debug, w, sent, recv, nil, map[string]interface{} {
 		"result": map[string]interface{} {
 			"prepay_id": prepayId,
-			"jsapi_params": reqJSAPI,
+			"jsapi_params": string(b), //reqJSAPI,
 		},
 	})
 }
 
-/**
- * Native pay
- * {
-      "appId": "appId of mp/mini-prog",
-      "payApp": "name-of-app-in-wxpay-gateway",
-      "goods": "XXXX-xxxx",
-      "udd": "user defined data as parameters when calling callback",
-      "orderId": "unique order id",
-      "fee": xxx-in-fen,
-      "ip": "ip to create order",
-      "productId": "productId"
- * }
- */
+// POST /create/NATIVE
+// POST Body:
+// {
+//    "appId": "appId of mp/mini-prog",
+//    "payApp": "name-of-app-in-wxpay-gateway",
+//    "goods": "XXXX-xxxx",
+//    "udd": "user defined data as parameters when calling callback",
+//    "orderId": "unique order id",
+//    "fee": xxx-in-fen,
+//    "ip": "ip to create order",
+//    "productId": "productId",
+//    "notifyUrl": "your notify url, which can be accessed outside",
+//    "debug": false|true, default is false
+// }
 func createNativePay(w http.ResponseWriter, r *http.Request) {
 	var nativeParam struct {
 		AppId    string
@@ -122,6 +129,8 @@ func createNativePay(w http.ResponseWriter, r *http.Request) {
 		Fee      int
 		Ip       string
 		ProductId string
+		NotifyUrl string
+		Debug bool
 	}
 
 	if code, err := _ReadJson(r, &nativeParam); err != nil {
@@ -130,13 +139,13 @@ func createNativePay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSandbox := _IsSandbox(nativeParam.PayApp)
-	mchConf, _, ok := conf.GetAppAttrs(nativeParam.PayApp)
+	mchConf, ok := conf.GetAppAttrs(nativeParam.PayApp)
 	if !ok {
 		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
 
-	prepayId, codeUrl, err := wxpay.NativePay(
+	prepayId, codeUrl, sent, recv, err := wxpay.NativePay(
 		nativeParam.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
@@ -145,18 +154,15 @@ func createNativePay(w http.ResponseWriter, r *http.Request) {
 		nativeParam.OrderId,
 		nativeParam.Fee,
 		nativeParam.Ip,
-		_AppendAppName(conf.ServiceConf.NotifyPayUrl, nativeParam.PayApp),
+		nativeParam.NotifyUrl,
 		nativeParam.ProductId,
 		isSandbox,
 	)
 	if err != nil {
-		_WriteError(w, http.StatusInternalServerError, err.Error())
+		sendResultWithMsg(nativeParam.Debug, w, sent, recv, err)
 		return
 	}
-
-	_WriteJson(w, http.StatusOK, map[string]interface{} {
-		"code": http.StatusOK,
-		"msg": "OK",
+	sendResultWithMsg(nativeParam.Debug, w, sent, recv, nil, map[string]interface{} {
 		"result": map[string]interface{} {
 			"prepay_id": prepayId,
 			"code_url": codeUrl,
@@ -164,18 +170,19 @@ func createNativePay(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-/**
- * App pay
- * {
-      "appId": "appId of mp/mini-prog",
-      "payApp": "name-of-app-in-wxpay-gateway",
-      "goods": "XXXX-xxxx",
-      "udd": "user defined data as parameters when calling callback",
-      "orderId": "unique order id",
-      "fee": xxx-in-fen,
-      "ip": "ip to create order"
- * }
- */
+// POST /create/APP
+// POST Body:
+// {
+//    "appId": "appId of mp/mini-prog",
+//    "payApp": "name-of-app-in-wxpay-gateway",
+//    "goods": "XXXX-xxxx",
+//    "udd": "user defined data as parameters when calling callback",
+//    "orderId": "unique order id",
+//    "fee": xxx-in-fen,
+//    "ip": "ip to create order",
+//    "notifyUrl": "your notify url, which can be accessed outside",
+//    "debug": false|true, default is false
+// }
 func createAppPay(w http.ResponseWriter, r *http.Request) {
 	var appParam struct {
 		AppId    string
@@ -185,6 +192,8 @@ func createAppPay(w http.ResponseWriter, r *http.Request) {
 		OrderId  string
 		Fee      int
 		Ip       string
+		NotifyUrl string
+		Debug bool
 	}
 
 	if code, err := _ReadJson(r, &appParam); err != nil {
@@ -193,13 +202,13 @@ func createAppPay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSandbox := _IsSandbox(appParam.PayApp)
-	mchConf, _, ok := conf.GetAppAttrs(appParam.PayApp)
+	mchConf, ok := conf.GetAppAttrs(appParam.PayApp)
 	if !ok {
 		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
 
-	prepayId, reqAppPay, err := wxpay.AppPay(
+	prepayId, reqAppPay, sent, recv, err := wxpay.AppPay(
 		appParam.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
@@ -208,17 +217,14 @@ func createAppPay(w http.ResponseWriter, r *http.Request) {
 		appParam.OrderId,
 		appParam.Fee,
 		appParam.Ip,
-		_AppendAppName(conf.ServiceConf.NotifyPayUrl, appParam.PayApp),
+		appParam.NotifyUrl,
 		isSandbox,
 	)
 	if err != nil {
-		_WriteError(w, http.StatusInternalServerError, err.Error())
+		sendResultWithMsg(appParam.Debug, w, sent, recv, err)
 		return
 	}
-
-	_WriteJson(w, http.StatusOK, map[string]interface{} {
-		"code": http.StatusOK,
-		"msg": "OK",
+	sendResultWithMsg(appParam.Debug, w, sent, recv, nil, map[string]interface{} {
 		"result": map[string]interface{} {
 			"prepay_id": prepayId,
 			"req_params": reqAppPay,
@@ -226,38 +232,39 @@ func createAppPay(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-/**
- * H5 pay
- * {
-      "appId": "appId of mp/mini-prog",
-      "payApp": "name-of-app-in-wxpay-gateway",
-      "goods": "XXXX-xxxx",
-      "udd": "user defined data as parameters when calling callback",
-      "orderId": "unique order id",
-      "fee": xxx-in-fen,
-      "ip": "ip to create order",
-      "redirectUrl": "url to redirect after payment",
-      "sceneInfo": {
-         "h5_info": {
-            "type": "",
-            "wap_name": "",
-            "wap_url": "wap-site-url"
-         }
-            ---- OR ----
-         "h5_info": {
-            "type": "",
-            "app_name":"",
-            "bundle_id": "ios-bundle-id"
-         }
-            ---- OR ----
-         "h5_info": {
-            "type": "",
-            "app_name":"",
-            "package_name": "android-package-name"
-         }
-      }
- * }
- */
+// POST /create/H5
+// POST Body:
+// {
+//     "appId": "appId of mp/mini-prog",
+//     "payApp": "name-of-app-in-wxpay-gateway",
+//     "goods": "XXXX-xxxx",
+//     "udd": "user defined data as parameters when calling callback",
+//     "orderId": "unique order id",
+//     "fee": xxx-in-fen,
+//     "ip": "ip to create order",
+//     "redirectUrl": "url to redirect after payment",
+//     "notifyUrl": "your notify url, which can be accessed outside",
+//     "sceneInfo": {
+//        "h5_info": {
+//           "type": "",
+//           "wap_name": "",
+//           "wap_url": "wap-site-url"
+//        }
+//        ---- OR ----
+//        "h5_info": {
+//           "type": "",
+//           "app_name":"",
+//           "bundle_id": "ios-bundle-id"
+//        }
+//        ---- OR ----
+//        "h5_info": {
+//           "type": "",
+//           "app_name":"",
+//           "package_name": "android-package-name"
+//        }
+//     },
+//     "debug": false|true, default is false
+// }
 func createH5Pay(w http.ResponseWriter, r *http.Request) {
 	var h5Param struct {
 		AppId    string
@@ -268,7 +275,9 @@ func createH5Pay(w http.ResponseWriter, r *http.Request) {
 		Fee      int
 		Ip       string
 		RedirectUrl string
+		NotifyUrl   string
 		SceneInfo interface{}
+		Debug bool
 	}
 
 	if code, err := _ReadJson(r, &h5Param); err != nil {
@@ -286,13 +295,13 @@ func createH5Pay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSandbox := _IsSandbox(h5Param.PayApp)
-	mchConf, _, ok := conf.GetAppAttrs(h5Param.PayApp)
+	mchConf, ok := conf.GetAppAttrs(h5Param.PayApp)
 	if !ok {
 		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
 
-	prepayId, payUrl, err := wxpay.H5Pay(
+	prepayId, payUrl, sent, recv, err := wxpay.H5Pay(
 		h5Param.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
@@ -301,19 +310,16 @@ func createH5Pay(w http.ResponseWriter, r *http.Request) {
 		h5Param.OrderId,
 		h5Param.Fee,
 		h5Param.Ip,
-		_AppendAppName(conf.ServiceConf.NotifyPayUrl, h5Param.PayApp),
+		h5Param.NotifyUrl,
 		h5Param.RedirectUrl,
 		sceneInfo,
 		isSandbox,
 	)
 	if err != nil {
-		_WriteError(w, http.StatusInternalServerError, err.Error())
+		sendResultWithMsg(h5Param.Debug, w, sent, recv, err)
 		return
 	}
-
-	_WriteJson(w, http.StatusOK, map[string]interface{} {
-		"code": http.StatusOK,
-		"msg": "OK",
+	sendResultWithMsg(h5Param.Debug, w, sent, recv, nil, map[string]interface{} {
 		"result": map[string]interface{} {
 			"prepay_id": prepayId,
 			"pay_url": payUrl,

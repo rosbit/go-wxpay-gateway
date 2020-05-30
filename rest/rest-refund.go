@@ -7,18 +7,19 @@ import (
 )
 
 // POST /refundment
-/* {
-      "appId": "appId of mp/mini-prog",
-      "payApp": "name-of-app-in-wxpay-gateway",
-      "transactionId": "transaction_id returned by wx",
-          - or -
-      "orderId": "unique-order-id",
-      "refundId": "unique-refund-id",
-      "totalFee": xxx-in-fen,
-      "refundFee": xxx-in-fen,
-      "refundReason": "reason"
- * }
- */
+// {
+//      "appId": "appId of mp/mini-prog",
+//      "payApp": "name-of-app-in-wxpay-gateway",
+//      "transactionId": "transaction_id returned by wx",
+//          - or -
+//      "orderId": "unique-order-id",
+//      "refundId": "unique-refund-id",
+//      "totalFee": xxx-in-fen,
+//      "refundFee": xxx-in-fen,
+//      "refundReason": "reason",
+//	    "notifyUrl": "your notify url, which can be accessed outside",
+//      "debug": false|true, default is false
+// }
 func CreateRefundment(w http.ResponseWriter, r *http.Request) {
 	var refundParam struct {
 		AppId         string
@@ -29,6 +30,8 @@ func CreateRefundment(w http.ResponseWriter, r *http.Request) {
 		TotalFee      int
 		RefundFee     int
 		RefundReason  string
+		NotifyUrl     string
+		Debug         bool
 	}
 
 	if code, err := _ReadJson(r, &refundParam); err != nil {
@@ -37,7 +40,7 @@ func CreateRefundment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSandbox := _IsSandbox(refundParam.PayApp)
-	mchConf, _, ok := conf.GetAppAttrs(refundParam.PayApp)
+	mchConf, ok := conf.GetAppAttrs(refundParam.PayApp)
 	if !ok {
 		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
 		return
@@ -54,7 +57,7 @@ func CreateRefundment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refundNotifyParams, err := refundFn(
+	refundNotifyParams, sent, recv, err := refundFn(
 		refundParam.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
@@ -63,20 +66,16 @@ func CreateRefundment(w http.ResponseWriter, r *http.Request) {
 		refundParam.TotalFee,
 		refundParam.RefundFee,
 		refundParam.RefundReason,
-		_AppendAppName(conf.ServiceConf.NotifyRefundUrl, refundParam.PayApp),
+		refundParam.NotifyUrl,
 		mchConf.MchCertPemFile,
 		mchConf.MchKeyPemFile,
 		isSandbox,
 	)
-
 	if err != nil {
-		_WriteError(w, http.StatusInternalServerError, err.Error())
+		sendResultWithMsg(refundParam.Debug, w, sent, recv, err)
 		return
 	}
-
-	_WriteJson(w, http.StatusOK, map[string]interface{} {
-		"code": http.StatusOK,
-		"msg": "OK",
+	sendResultWithMsg(refundParam.Debug, w, sent, recv, nil, map[string]interface{} {
 		"result": refundNotifyParams,
 	})
 }

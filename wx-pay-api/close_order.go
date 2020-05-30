@@ -2,18 +2,14 @@
 
 package wxpay
 
-func postClose(orderId string, xml []byte, isSandbox bool, apiKey string) error {
-	_paymentLog.Printf("[close-order] 1. ### Before Closing order %s: %s\n", orderId, string(xml))
+func postClose(orderId string, xml []byte, isSandbox bool, apiKey string) (recv []byte, err error) {
 	orderclose_url := _GetApiUrl(UT_ORDER_CLOSE, isSandbox)
-	content, err := _CallWxAPI(orderclose_url, "POST", xml)
-	if err != nil {
-		_paymentLog.Printf("[close-order] 2. --- Close order %s failed: %v\n", orderId, err)
-		return err
+	if recv, err = _CallWxAPI(orderclose_url, "POST", xml); err != nil {
+		return
 	}
-	_paymentLog.Printf("[close-order] 2. +++ Result of closing order %s: %s\n", orderId, string(content))
 
-	_, err = parseXmlResult(content, apiKey)
-	return err
+	_, err = parseXmlResult(recv, apiKey)
+	return
 }
 
 func CloseOrder(
@@ -22,7 +18,7 @@ func CloseOrder(
 	mchApiKey string,
 	orderId   string,
 	isSandbox bool,
-) error {
+) (xmlstr, recv []byte, err error) {
 	/*
 	if isSandbox {
 		var err error
@@ -43,7 +39,7 @@ func CloseOrder(
 	signature := createMd5Signature(params, mchApiKey)
 	addTag(xml, params, "sign", signature, false)
 
-	xmlstr := xml.toXML()
-
-	return postClose(orderId, xmlstr, isSandbox, mchApiKey)
+	xmlstr = xml.ToXML()
+	recv, err = postClose(orderId, xmlstr, isSandbox, mchApiKey)
+	return
 }

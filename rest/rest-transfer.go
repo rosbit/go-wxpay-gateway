@@ -7,18 +7,18 @@ import (
 )
 
 // POST /transfer
-/*
- {
-	 "appId": "appId of mp/mini-prog",
-	 "payApp": "name-of-app-in-wxpay-gateway",
-     "tradeNo": "unique-trade-no",
-	 "openId": "openid to be transfered",
-	 "userName": "real user name",
-	 "amount": xxx-in-fen,
-	 "desc": "description",
-	 "ip": "ip to create order"
- }
-*/
+// POST Body:
+// {
+//  "appId": "appId of mp/mini-prog",
+//  "payApp": "name-of-app-in-wxpay-gateway",
+//  "tradeNo": "unique-trade-no",
+//  "openId": "openid to be transfered",
+//  "userName": "real user name",
+//  "amount": xxx-in-fen,
+//  "desc": "description",
+//  "ip": "ip to create order",
+//  "debug": false|true, default is false
+// }
 func Transfer(w http.ResponseWriter, r *http.Request) {
 	var transferParam struct {
 		AppId    string
@@ -29,6 +29,7 @@ func Transfer(w http.ResponseWriter, r *http.Request) {
 		Amount   int
 		Desc     string
 		Ip       string
+		Debug    bool
 	}
 
 	if code, err := _ReadJson(r, &transferParam); err != nil {
@@ -37,13 +38,13 @@ func Transfer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSandbox := _IsSandbox(transferParam.PayApp)
-	mchConf, _, ok := conf.GetAppAttrs(transferParam.PayApp)
+	mchConf, ok := conf.GetAppAttrs(transferParam.PayApp)
 	if !ok {
 		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
 
-	res, err := wxpay.Transfer(
+	res, sent, recv, err := wxpay.Transfer(
 		transferParam.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
@@ -58,9 +59,11 @@ func Transfer(w http.ResponseWriter, r *http.Request) {
 		isSandbox,
 	)
 	if err != nil {
-		_WriteError(w, http.StatusInternalServerError, err.Error())
+		sendResultWithMsg(transferParam.Debug, w, sent, recv, err)
 		return
 	}
-	_WriteJson(w, http.StatusOK, &res)
+	sendResultWithMsg(transferParam.Debug, w, sent, recv, nil, map[string]interface{} {
+		"result": res,
+	})
 }
 

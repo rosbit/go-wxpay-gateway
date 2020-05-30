@@ -10,17 +10,14 @@ const (
 	SANDBOX_FEE = 101
 )
 
-func postOrder(orderId string, apiKey string, xml []byte, isSandbox bool) (map[string]string, error) {
-	_paymentLog.Printf("[payment] 1. ### Before POSTing order #%s: %s\n", orderId, string(xml))
+func postOrder(orderId string, apiKey string, xml []byte, isSandbox bool) (res map[string]string, recv []byte, err error) {
 	unifiedorder_url := _GetApiUrl(UT_UNIFIED_ORDER, isSandbox)
-	content, err := _CallWxAPI(unifiedorder_url, "POST", xml)
-	if err != nil {
-		_paymentLog.Printf("[payment] 2. --- POST order #%s failed: %v\n", orderId, err)
-		return  nil, err
+	if recv, err = _CallWxAPI(unifiedorder_url, "POST", xml); err != nil {
+		return
 	}
-	_paymentLog.Printf("[payment] 2. +++ Result of POSTing order #%s: %s\n", orderId, string(content))
 
-	return parseXmlResult(content, apiKey)
+	res, err = parseXmlResult(recv, apiKey)
+	return
 }
 
 func payOrder(
@@ -39,7 +36,7 @@ func payOrder(
 	openId string,
 	sceneInfo []byte,
 	isSandbox bool,
-) (prepay_id string, res map[string]string, err error) {
+) (prepay_id string, res map[string]string, xmlstr, recv []byte, err error) {
 	tags := make(map[string]string)
 	xml := newXmlGenerator("xml")
 	addTag(xml, tags, "appid",       appId,      false)
@@ -62,31 +59,33 @@ func payOrder(
 	signature := createMd5Signature(tags, mchApiKey)
 	addTag(xml, tags, "sign", signature, false)
 
-	xmlstr := xml.toXML()
+	xmlstr = xml.ToXML()
 	// fmt.Printf("xml: %s\n", string(xmlstr))
 
-	if res, err = postOrder(orderId, mchApiKey, xmlstr, isSandbox); err != nil {
-		return "", nil, err
+	if res, recv, err = postOrder(orderId, mchApiKey, xmlstr, isSandbox); err != nil {
+		return
 	}
 
 	// return_code is "SUCCESS", then check result_code
 	if result_code, ok := res["result_code"]; !ok {
-		return "", nil, fmt.Errorf("no result_code")
+		err = fmt.Errorf("no result_code")
+		return
 	} else {
 		if result_code != "SUCCESS" {
 			err_code_des, ok := res["err_code_des"]
 			if !ok {
-				return "", nil, fmt.Errorf("no err_code_des")
+				err = fmt.Errorf("no err_code_des")
 			} else {
-				return "", nil, fmt.Errorf("err_code_des: %s", err_code_des)
+				err = fmt.Errorf("err_code_des: %s", err_code_des)
 			}
+			return
 		}
 	}
 
 	// get prepay_id
 	var ok bool
 	if prepay_id, ok = res["prepay_id"]; !ok {
-		return "", nil, fmt.Errorf("no prepay_id")
+		err = fmt.Errorf("no prepay_id")
 	}
 	return
 }

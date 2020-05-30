@@ -12,19 +12,17 @@
       "listen-port": 7080,
       "worker-num": 5,
       "timeout": 0,
-      "pay-log-file": "",
-      "notify-pay-url": "outerside URL mapped to notify-pay-callback",
-      "notify-refund-url": "outerside URL mapped to notify-refund-callback",
-      "notify-file": "file-path-to-save-notify-message",
       "endpoints": {
+         "health-check": "/health",
          "create-pay": "/create-pay",
-         "notify-pay": "/notify-pay",
          "create-refund": "/create-refund",
-         "notify-refund": "/notify-refund",
          "query-order": "/query-order",
          "close-order": "/close-order",
          "transfer": "/transfer",
-         "query-transfer": "/query-transfer"
+         "query-transfer": "/query-transfer",
+         "realname-auth-root": "/realname/auth -- will be replaced with ${realname-auth-root}/:op {url|identity|getinfo}",
+         "verify-notify-pay": "/verify-notify-pay",
+         "verify-notify-refund": "/verify-notify-refund"
       },
       "merchants": [
          {
@@ -32,21 +30,18 @@
              "mch-id": "", 
              "mch-api-key": "",
              "mch-cert-pem-file": "your-cert-pem-file-name, only used when refunding",
-             "mch-key-pem-file": "your-key-pem-file-name, only used when refunding"
+             "mch-key-pem-file": "your-key-pem-file-name, only used when refunding",
+             "mch-cert-serialno": "optional, only used when real-name getinfo"
          }
       ],
       "apps": [
          {
              "name": "app1",
              "merchant": "mch1, the name in merchants",
-             "notify-pay-callback": "a-url-to-receive-payment-callback-with-post-method",
-             "notify-refund-callback": "a-url-to-receive-refundment-callback-with-post-method",
          },
          {
              "name": "app1-dev, name with suffix -dev will be call wxpay in sandbox",
              "merchant": "mch1, the name in merchants",
-             "notify-pay-callback": "a-url-to-receive-payment-callback-with-post-method",
-             "notify-refund-callback": "a-url-to-receive-refundment-callback-with-post-method",
          }
       ]
    }
@@ -70,29 +65,30 @@ const (
 )
 
 type EndpointConf struct {
+	HealthCheck   string `json:"health"`
 	CreatePay     string `json:"create-pay"`
-	NotifyPay     string `json:"notify-pay"`
 	CreateRefund  string `json:"create-refund"`
-	NotifyRefund  string `json:"notify-refund"`
 	QueryOrder    string `json:"query-order"`
 	CloseOrder    string `json:"close-order"`
-	Transfer      string
+	Transfer      string `json:"transfer"`
 	QueryTransfer string `json:"query-transfer"`
+	RealnameAuthRoot   string `json:"realname-auth-root"`
+	VerifyNotifyPay    string `json:"verify-notify-pay"`
+	VerifyNotifyRefund string `json:"verify-notify-refund"`
 }
 
 type MerchantConf struct {
 	Name      string
 	MchId     string `json:"mch-id"`
 	MchApiKey string `json:"mch-api-key"`
-	MchCertPemFile string `json:"mch-cert-pem-file"`
-	MchKeyPemFile  string `json:"mch-key-pem-file"`
+	MchCertPemFile  string `json:"mch-cert-pem-file"`
+	MchKeyPemFile   string `json:"mch-key-pem-file"`
+	MchCertSerialNo string `json:"mch-cert-serialno"`
 }
 
 type PayApps struct {
 	Name      string
 	Merchant  string
-	NotifyPayCallback    string `json:"notify-pay-callback"`
-	NotifyRefundCallback string `json:"notify-refund-callback"`
 }
 
 type WxPayServiceConf struct {
@@ -100,10 +96,6 @@ type WxPayServiceConf struct {
 	ListenPort int    `json:"listen-port"`
 	WorkerNum  int    `json:"worker-num"`
 	Timeout    int
-	PayLogFile      string `json:"pay-log-file"`
-	NotifyPayUrl    string `json:"notify-pay-url"`
-	NotifyRefundUrl string `json:"notify-refund-url"`
-	NotifyFile      string `json:"notify-file"`
 	Endpoints  EndpointConf
 	Merchants  []MerchantConf
 	Apps       []PayApps
@@ -165,18 +157,15 @@ func CheckGlobalConf() error {
 	return nil
 }
 
-func GetAppAttrs(appName string) (mchConf *MerchantConf, cbUrls []string, ok bool) {
-	if app, ok := Apps[appName]; !ok {
-		return nil, nil, false
-	} else {
-		merchant, ok := Merchants[app.Merchant]
-		if !ok {
-			return nil, nil, false
-		}
-		return merchant,
-			[]string{app.NotifyPayCallback, app.NotifyRefundCallback},
-			true
+func GetAppAttrs(appName string) (mchConf *MerchantConf, ok bool) {
+	var app *PayApps
+	if app, ok = Apps[appName]; !ok {
+		return
 	}
+	if mchConf, ok = Merchants[app.Merchant]; !ok {
+		return
+	}
+	return
 }
 
 func DumpConf() {

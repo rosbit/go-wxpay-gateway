@@ -2,27 +2,14 @@
 
 package wxpay
 
-import (
-	"fmt"
-)
-
-func postQuery(transactionId, orderId string, xml []byte, isSandbox bool, apiKey string) (*NotifyParams, error) {
-	var q string
-	if transactionId != "" {
-		q = fmt.Sprintf("transacton #%s", transactionId)
-	} else {
-		q = fmt.Sprintf("order #%s", orderId)
-	}
-	_paymentLog.Printf("[query] 1. ### Before Querying %s: %s\n", q, string(xml))
+func postQuery(transactionId, orderId string, xml []byte, isSandbox bool, apiKey string) (res INotifyParams, recv []byte, err error) {
 	orderquery_url := _GetApiUrl(UT_ORDER_QUERY, isSandbox)
-	content, err := _CallWxAPI(orderquery_url, "POST", xml)
-	if err != nil {
-		_paymentLog.Printf("[query] 2. --- Query %s failed: %v\n", q, err)
-		return nil, err
+	if recv, err = _CallWxAPI(orderquery_url, "POST", xml); err != nil {
+		return
 	}
-	_paymentLog.Printf("[query] 2. +++ Result of querying %s: %s\n", q, string(content))
 
-	return ParsePayNotifyBody("query-order-result", content, apiKey), nil
+	res, err = ParsePayNotifyBody("query-order-result", recv, apiKey)
+	return
 }
 
 func queryOrder(
@@ -32,7 +19,7 @@ func queryOrder(
 	transactionId string,
 	orderId   string,
 	isSandbox bool,
-) (*NotifyParams, error) {
+) (res INotifyParams, xmlstr, recv []byte, err error) {
 	/*
 	if isSandbox {
 		var err error
@@ -57,9 +44,10 @@ func queryOrder(
 	signature := createMd5Signature(params, mchApiKey)
 	addTag(xml, params, "sign", signature, false)
 
-	xmlstr := xml.toXML()
+	xmlstr = xml.ToXML()
 
-	return postQuery(transactionId, orderId, xmlstr, isSandbox, mchApiKey)
+	res, recv, err = postQuery(transactionId, orderId, xmlstr, isSandbox, mchApiKey)
+	return
 }
 
 type FnQueryOrder func(
@@ -68,7 +56,7 @@ type FnQueryOrder func(
 	mchApiKey string,
 	id        string,
 	isSandbox bool,
-) (res *NotifyParams, err error)
+) (res INotifyParams, sent, recv []byte, err error)
 
 func QueryByOrderId(
 	appId string,
@@ -76,7 +64,7 @@ func QueryByOrderId(
 	mchApiKey string,
 	orderId string,
 	isSandbox bool,
-) (*NotifyParams, error) {
+) (INotifyParams, []byte, []byte, error) {
 	return queryOrder(appId, mchId, mchApiKey, "", orderId, isSandbox)
 }
 
@@ -86,6 +74,6 @@ func QueryByTransactionId(
 	mchApiKey string,
 	transactionId string,
 	isSandbox bool,
-) (*NotifyParams, error) {
+) (INotifyParams, []byte, []byte, error) {
 	return queryOrder(appId, mchId, mchApiKey, transactionId, "", isSandbox)
 }

@@ -3,6 +3,7 @@
 package wxpay
 
 import (
+	"go-wxpay-gateway/sign"
 	"fmt"
 )
 
@@ -19,7 +20,7 @@ func Transfer(
 	certFile  string,
 	keyFile   string,
 	isSandbox bool,
-) (*TransferResult, error) {
+) (res *TransferResult, xmlstr, recv []byte, err error) {
 	tags := make(map[string]string)
 	xml := newXmlGenerator("xml")
 	addTag(xml, tags, "mch_appid",   appId,      false)
@@ -37,24 +38,22 @@ func Transfer(
 	addTag(xml, tags, "desc",     desc,                       false)
 	addTag(xml, tags, "spbill_create_ip",  ip,                false)
 	// sign
-	signature := createMd5Signature(tags, mchApiKey)
+	signature := sign.CreateSignature(sign.MD5, tags, mchApiKey)
 	addTag(xml, tags, "sign", signature, false)
 
-	xmlstr := xml.toXML()
+	xmlstr = xml.ToXML()
 	// fmt.Printf("xml: %s\n", string(xmlstr))
 
-	return postTransfer(tradeNo, mchApiKey, certFile, keyFile, xmlstr, isSandbox)
+	res, recv, err = postTransfer(tradeNo, mchApiKey, certFile, keyFile, xmlstr, isSandbox)
+	return
 }
 
-func postTransfer(tradeNo, apiKey, certFile, keyFile string, xml []byte, isSandbox bool) (*TransferResult, error) {
-	_paymentLog.Printf("[transfer] 1. ### Before POSTing transfer #%s: %s\n", tradeNo, string(xml))
+func postTransfer(tradeNo, apiKey, certFile, keyFile string, xml []byte, isSandbox bool) (res *TransferResult, recv []byte, err error) {
 	transfer_url := _GetApiUrl(UT_TRANSFER, isSandbox)
-	content, err := _CallSecureWxAPI(transfer_url, "POST", xml, certFile, keyFile)
-	if err != nil {
-		_paymentLog.Printf("[transfer] 2. --- POST transfer #%s failed: %v\n", tradeNo, err)
-		return  nil, err
+	if recv, err = _CallSecureWxAPI(transfer_url, "POST", xml, certFile, keyFile); err != nil {
+		return
 	}
-	_paymentLog.Printf("[transfer] 2. +++ Result of POSTing transfer #%s: %s\n", tradeNo, string(content))
 
-	return ParseTransferResultBody("transfer result", content, apiKey)
+	res, err = ParseTransferResultBody("transfer result", recv, apiKey)
+	return
 }

@@ -7,17 +7,19 @@ import (
 )
 
 // POST /queryorder
-/* {
-      "appId": "appId of mp/mini-prog",
-      "payApp": "name-of-app-in-wxpay-gateway",
-      "orderId": "unique-order-id"
- * }
- */
+// POST Body:
+// {
+//      "appId": "appId of mp/mini-prog",
+//      "payApp": "name-of-app-in-wxpay-gateway",
+//      "orderId": "unique-order-id",
+//      "debug": false|true, default is false
+// }
 func CloseOrder(w http.ResponseWriter, r *http.Request) {
 	var closeParam struct {
-		AppId         string
-		PayApp        string
-		OrderId       string
+		AppId   string
+		PayApp  string
+		OrderId string
+		Debug bool
 	}
 	if code, err := _ReadJson(r, &closeParam); err != nil {
 		_WriteError(w, code, err.Error())
@@ -25,7 +27,7 @@ func CloseOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSandbox := _IsSandbox(closeParam.PayApp)
-	mchConf, _, ok := conf.GetAppAttrs(closeParam.PayApp)
+	mchConf, ok := conf.GetAppAttrs(closeParam.PayApp)
 	if !ok {
 		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
 		return
@@ -35,16 +37,14 @@ func CloseOrder(w http.ResponseWriter, r *http.Request) {
 		_WriteError(w, http.StatusBadRequest, "Please specify orderId")
 		return
 	}
-	if err := wxpay.CloseOrder(
+
+	sent, recv, err := wxpay.CloseOrder(
 		closeParam.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
 		closeParam.OrderId,
 		isSandbox,
-	); err != nil {
-		_WriteError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	_WriteError(w, http.StatusOK, "OK")
+	)
+	sendResultWithMsg(closeParam.Debug, w, sent, recv, err)
 }
 

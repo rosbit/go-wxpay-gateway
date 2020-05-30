@@ -4,18 +4,16 @@
 	"worker-num": 5,
 	"timeout": 0,
 	"pay-log-file": "wxpay-gateway-log.txt",
-	"notify-pay-url": "http://你的外网可访问域名/wxpay/notify-pay",
-	"notify-refund-url": "http://你的外网可访问域名/wxpay/notify-refund",
-	"notify-file": "wxpay-notify.txt",
 	"endpoints": {
 		"create-pay": "/wxpay/create-pay",
-		"notify-pay": "/wxpay/notify-pay",
 		"create-refund": "/wxpay/create-refund",
-		"notify-refund": "/wxpay/notify-refund",
 		"query-order": "/wxpay/query-order",
 		"close-order": "/wxpay/close-order",
 		"transfer": "/transfer",
-		"query-transfer": "/query-transfer"
+		"query-transfer": "/query-transfer",
+		"realname-auth-root": "/realname/auth -- 实名认证根路径,会添加后缀 /:op  op 可以是 {url|identity|getinfo}",
+		"verify-notify-pay": "/verify-notify-pay",
+		"verify-notify-refund": "/verify-notify-refund"
 	},
 	"merchants": [
 		{
@@ -23,28 +21,26 @@
 			"mch-id": "商户id", 
 			"mch-api-key": "商户apiKey",
 			"mch-cert-pem-file": "./路径指向/apiclient_cert.pem",
-			"mch-key-pem-file": "./路径指向/apiclient_key.pem"
+			"mch-key-pem-file": "./路径指向/apiclient_key.pem",
+                        "mch-cert-serialno": "证书序列号, 用于实名认证getinfo"
 		},
 		{
 			"name": "mch-name-sandbox",
 			"mch-id": "商户id", 
 			"mch-api-key": "商户apiKey",
 			"mch-cert-pem-file": "./路径指向/apiclient_cert.pem",
-			"mch-key-pem-file": "./路径/apiclient_key.pem"
+			"mch-key-pem-file": "./路径/apiclient_key.pem",
+                        "mch-cert-serialno": "证书序列号, 用于实名认证getinfo"
 		}
 	],
 	"apps": [
 		{
 			"name": "app-name",
-			"merchant": "mch-name",
-			"notify-pay-callback": "http://你的外网可访问域名/notify-pay-cb",
-			"notify-refund-callback": "http://你的外网可访问域名/notify-refund-cb"
+			"merchant": "mch-name"
 		},
 		{
 			"name": "app-name-dev",
-			"merchant": "mch-name-sandbox",
-			"notify-pay-callback": "http://支付应用的域名或ip/notify-pay-cb",
-			"notify-refund-callback": "http://支付应用的域名或ip/notify-refund-cb"
+			"merchant": "mch-name-sandbox"
 		}
 	]
 }

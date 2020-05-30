@@ -13,14 +13,10 @@ import (
 	"fmt"
 	"go-wxpay-gateway/conf"
 	"go-wxpay-gateway/rest"
-	"go-wxpay-gateway/wx-pay-api"
-	"go-wxpay-gateway/utils"
 )
 
 func StartService() error {
 	serviceConf := &conf.ServiceConf
-	wxpay.InitPaymentLog(serviceConf.PayLogFile)
-	utils.StartSaver(serviceConf.NotifyFile)
 
 	api := negroni.New()
 	api.Use(negroni.NewRecovery())
@@ -38,16 +34,24 @@ func StartService() error {
 		return fmt.Sprintf("%s/:%s", uri, param)
 	}
 	paymentEndpoint := appendEndpointParam(endpoints.CreatePay, rest.TRADE_TYPE_NAME)
-	notifyPayEndpoint := appendEndpointParam(endpoints.NotifyPay, rest.NOTIFY_APP_NAME)
-	notifyRefundEndpoint := appendEndpointParam(endpoints.NotifyRefund, rest.NOTIFY_APP_NAME)
 	router.Post(paymentEndpoint,        rest.CreatePayment)
-	router.Post(notifyPayEndpoint,      rest.NotifyPayment)
 	router.Post(endpoints.CreateRefund, rest.CreateRefundment)
-	router.Post(notifyRefundEndpoint,   rest.NotifyRefundment)
 	router.Post(endpoints.QueryOrder,   rest.QueryOrder)
 	router.Post(endpoints.CloseOrder,   rest.CloseOrder)
 	router.Post(endpoints.Transfer,     rest.Transfer)
 	router.Post(endpoints.QueryTransfer,rest.QueryTransfer)
+	router.Post(endpoints.VerifyNotifyPay,    rest.VerifyNotifyPayment)
+	router.Post(endpoints.VerifyNotifyRefund, rest.VerifyNotifyRefundment)
+	if len(endpoints.RealnameAuthRoot) > 0 {
+		realnameAuthEndpoint := appendEndpointParam(endpoints.RealnameAuthRoot, rest.REALNAME_TYPE_NAME)
+		router.Post(realnameAuthEndpoint, rest.AuthRealname)
+	}
+	if len(endpoints.HealthCheck) > 0 {
+		router.Get(endpoints.HealthCheck, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			fmt.Fprintf(w, "OK\n")
+		})
+	}
 
 	api.UseHandler(router)
 

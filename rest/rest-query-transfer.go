@@ -7,18 +7,19 @@ import (
 )
 
 // POST /query-transfer
-/*
- {
-      "appId": "appId of mp/mini-prog",
-      "payApp": "name-of-app-in-wxpay-gateway",
-      "tradeNo": "unique-trade-no",
- }
-*/
+// POST Body
+// {
+//     "appId": "appId of mp/mini-prog",
+//     "payApp": "name-of-app-in-wxpay-gateway",
+//     "tradeNo": "unique-trade-no",
+//     "debug": false|true, default is false
+// }
 func QueryTransfer(w http.ResponseWriter, r *http.Request) {
 	var queryParam struct {
 		AppId   string
 		PayApp  string
 		TradeNo string
+		Debug   bool
 	}
 	if code, err := _ReadJson(r, &queryParam); err != nil {
 		_WriteError(w, code, err.Error())
@@ -26,12 +27,12 @@ func QueryTransfer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSandbox := _IsSandbox(queryParam.PayApp)
-	mchConf, _, ok := conf.GetAppAttrs(queryParam.PayApp)
+	mchConf, ok := conf.GetAppAttrs(queryParam.PayApp)
 	if !ok {
 		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
-	res, err := wxpay.QueryTransfer(
+	res, sent, recv, err := wxpay.QueryTransfer(
 		queryParam.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
@@ -41,8 +42,10 @@ func QueryTransfer(w http.ResponseWriter, r *http.Request) {
 		isSandbox,
 	)
 	if err != nil {
-		_WriteError(w, http.StatusInternalServerError, err.Error())
+		sendResultWithMsg(queryParam.Debug, w, sent, recv, err)
 		return
 	}
-	_WriteJson(w, http.StatusOK, res)
+	sendResultWithMsg(queryParam.Debug, w, sent, recv, nil, map[string]interface{} {
+		"result": res,
+	})
 }

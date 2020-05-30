@@ -3,11 +3,11 @@
 package wxpay
 
 import (
+	"github.com/rosbit/go-aes"
 	"fmt"
+	"io"
 	"crypto/md5"
 	"encoding/base64"
-	"github.com/rosbit/go-aes"
-	"io"
 )
 
 type RefundNotifyParams struct {
@@ -89,33 +89,27 @@ func _DecryptRefundNotify(reqInfo string, apiKey string) ([]byte, error) {
 	return goaes.AesDecrypt(oriReq, key)
 }
 
-func ParseRefundNotifyBody(prompt string, body []byte, apiKey string) *NotifyParams {
-	_paymentLog.Printf("[refund-notify] 1. *** %s received: %s\n", prompt, string(body))
-
+func ParseRefundNotifyBody(prompt string, body []byte, apiKey string) (INotifyParams, error) {
 	res, err := xml2map(body)
 	if err != nil {
-		_paymentLog.Printf("[refund-notify] 2. --- %s error: %v\n", prompt, err)
-		return _NewNotifyError(err)
+		return nil, err
 	}
-	_paymentLog.Printf("[refund-notify] 2. ### %s result: %v\n", prompt, res)
 	req_info, ok := res["req_info"]
 	if !ok {
-		_paymentLog.Printf("[refund-notify] 3. ### %s no req_info found\n", prompt)
-		return _NewNotifyError(fmt.Errorf("no req_info found in notify result"))
+		return nil, fmt.Errorf("no req_info found in notify result")
 	}
 	reqInfoXml, err := _DecryptRefundNotify(req_info, apiKey)
 	if err != nil {
-		return _NewNotifyError(err)
+		return nil, err
 	}
-	_paymentLog.Printf("[refund-notify] 3. ### %s decrypted req_info: %s\n", prompt, string(reqInfoXml))
 	reqInfo, err := xml2mapWithRoot(reqInfoXml, "root")
 	if err != nil {
-		return _NewNotifyError(err)
+		return nil, err
 	}
 
 	params := &RefundNotifyParams{_decryptedReqInfo:reqInfo}
 	if err = params.parse(res, nil); err != nil {
-		return _NewNotifyError(err)
+		return nil, err
 	}
-	return &NotifyParams{INotifyParams:params}
+	return params, nil
 }

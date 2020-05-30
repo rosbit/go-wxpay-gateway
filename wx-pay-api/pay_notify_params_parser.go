@@ -97,19 +97,15 @@ func (params *PayNotifyParams) parse(res map[string]string, _ error) (err error)
 	return nil
 }
 
-func ParsePayNotifyBody(prompt string, body []byte, apiKey string) *NotifyParams {
-	_paymentLog.Printf("[pay-notify] 1. *** %s received: %s\n", prompt, string(body))
-
+func ParsePayNotifyBody(prompt string, body []byte, apiKey string) (INotifyParams, error) {
 	res, err := parseXmlResult(body, apiKey)
 	if err != nil {
-		_paymentLog.Printf("[pay-notify] 2. --- %s error: %v\n", prompt, err)
-		return _NewNotifyError(err)
+		return nil, err
 	}
-	_paymentLog.Printf("[pay-notify] 2. ### %s result: %v\n", prompt, res)
 
 	params := &PayNotifyParams{}
 	if err = params.parse(res, nil); err != nil {
-		return _NewNotifyError(err)
+		return nil, err
 	}
-	return &NotifyParams{INotifyParams:params}
+	return params, nil
 }

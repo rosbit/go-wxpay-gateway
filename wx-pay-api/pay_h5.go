@@ -21,7 +21,7 @@ func H5Pay(
 	redirectUrl string,
 	sceneInfo []byte,
 	isSandbox bool,
-) (prepay_id string, pay_url string, err error) {
+) (prepay_id string, pay_url string, sent, recv []byte, err error) {
 	if isSandbox {
 		/*
 		if mchApiKey, err = GetSandbox(appId, mchId, mchApiKey); err != nil {
@@ -31,17 +31,18 @@ func H5Pay(
 	}
 
 	var res map[string]string
-	if prepay_id, res, err = payOrder(appId, mchId, mchApiKey, "H5", payBody, cbParams, orderId, fee, ip, notifyUrl, "MWEB", "", "", sceneInfo, isSandbox); err != nil {
-		_paymentLog.Printf("[H5-payment] 3. --- %v\n", err)
-		return "", "", err
+	if prepay_id, res, sent, recv, err = payOrder(appId, mchId, mchApiKey, "H5", payBody, cbParams, orderId, fee, ip, notifyUrl, "MWEB", "", "", sceneInfo, isSandbox); err != nil {
+		return
 	}
 
 	mweb_url, ok := res["mweb_url"]
 	if !ok {
-		return "", "", fmt.Errorf("no mweb_url")
+		err = fmt.Errorf("no mweb_url")
+		return
 	}
 
-	return prepay_id, _createPayUrl(mweb_url, redirectUrl), nil
+	pay_url = _createPayUrl(mweb_url, redirectUrl)
+	return
 }
 
 func _createPayUrl(mweb_url, redirectUrl string) string {

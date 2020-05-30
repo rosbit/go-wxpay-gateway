@@ -18,7 +18,7 @@ func AppPay(
 	ip      string,
 	notifyUrl string,
 	isSandbox bool,
-) (prepayId string, reqApp map[string]string, err error) {
+) (prepayId string, reqApp map[string]string, sent, recv []byte, err error) {
 	if isSandbox {
 		/*
 		if mchApiKey, err = GetSandbox(appId, mchId, mchApiKey); err != nil {
@@ -26,13 +26,13 @@ func AppPay(
 		}*/
 		fee = SANDBOX_FEE
 	}
-	prepayId, _, err = payOrder(appId, mchId, mchApiKey, "APP", payBody, cbParams, orderId, fee, ip, notifyUrl, "APP", "", "", nil, isSandbox)
+	prepayId, _, sent, recv, err = payOrder(appId, mchId, mchApiKey, "APP", payBody, cbParams, orderId, fee, ip, notifyUrl, "APP", "", "", nil, isSandbox)
 	if err != nil {
-		_paymentLog.Printf("[App-payment] 3. --- %v\n", err)
-		return "", nil, err
+		return
 	}
 
-	return prepayId, CreateAppParams(appId, mchApiKey, prepayId, mchId), nil
+	reqApp = CreateAppParams(appId, mchApiKey, prepayId, mchId)
+	return
 }
 
 func CreateAppParams(appId string, mchApiKey string, prepayId string, partnerId string) map[string]string {
@@ -44,6 +44,5 @@ func CreateAppParams(appId string, mchApiKey string, prepayId string, partnerId 
 	params["noncestr"]  = string(_GetRandomBytes(32))
 	params["timestamp"] = fmt.Sprintf("%d", time.Now().Unix())
 	params["sign"]      = createMd5Signature(params, mchApiKey)
-	_paymentLog.Printf("[App-payment] ### app payment params: %v\n", params)
 	return params
 }

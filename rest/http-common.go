@@ -19,8 +19,9 @@ func _WriteBytesJson(w http.ResponseWriter, code int, data []byte) {
 }
 
 func _WriteJson(w http.ResponseWriter, code int, data interface{}) {
-	j, _ := json.Marshal(data)
-	_WriteBytesJson(w, code, j)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(data)
 }
 
 func _WriteError(w http.ResponseWriter, code int, msg string) {
