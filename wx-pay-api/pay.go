@@ -3,7 +3,9 @@
 package wxpay
 
 import (
+	"go-wxpay-gateway/conf"
 	"fmt"
+	"time"
 )
 
 const (
@@ -52,6 +54,7 @@ func payOrder(
 	addTag(xml, tags, "trade_type",  tradeType,   false)
 	addTag(xml, tags, "product_id",  productId,   tradeType != "NATIVE")
 	addTag(xml, tags, "openid",      openId,      tradeType != "JSAPI")
+	addTag(xml, tags, "time_expire", genExpire(), false)
 	if sceneInfo != nil {
 		addTag(xml, tags, "scene_info", string(sceneInfo), false)
 	}
@@ -90,3 +93,7 @@ func payOrder(
 	return
 }
 
+func genExpire() string {
+	expire := time.Now().Add(time.Duration(conf.ServiceConf.OrderExpireMinutes)*time.Minute)
+	return expire.Format("20060102150405")
+}

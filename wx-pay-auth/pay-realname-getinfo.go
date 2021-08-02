@@ -6,7 +6,7 @@ package oauth
 // 文档: https://pay.weixin.qq.com/wiki/doc/api/realnameauth.php?chapter=60_3&index=40
 
 import (
-	"github.com/rosbit/go-wget"
+	"github.com/rosbit/gnet"
 	"go-wxpay-gateway/xml-msg"
 	"go-wxpay-gateway/sign"
 	"fmt"
@@ -66,7 +66,9 @@ func (r *PayUserGetinfo) getinfo(keyFile string, params map[string]string, times
 	xmlstr := xml.ToXML()
 
 	var content []byte
-	if _, content, _, err = wget.Wget("https://fraud.mch.weixin.qq.com/secsvc/getrealnameinfo", "POST", xmlstr, map[string]string{"Content-Type": "text/xml"}); err != nil {
+	if _, content, _, err = gnet.Http("https://fraud.mch.weixin.qq.com/secsvc/getrealnameinfo",
+		gnet.M("POST"), gnet.Params(xmlstr), gnet.Headers(map[string]string{"Content-Type": "text/xml"}),
+	); err != nil {
 		return
 	}
 	var res map[string]string

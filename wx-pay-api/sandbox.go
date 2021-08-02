@@ -12,9 +12,9 @@ const getsignkey_url = "https://api.mch.weixin.qq.com/sandboxnew/pay/getsignkey"
 func GetSandbox(appId string, mchId string, apiKey string) (string, error) {
 	tags := make(map[string]string)
 	xml := newXmlGenerator("xml")
-	addTag(xml, tags, "appid",  appId, false)
+	// addTag(xml, tags, "appid",  appId, false)
 	addTag(xml, tags, "mch_id", mchId, false)
-	addTag(xml, tags, "sign_type", "MD5", false)
+	// addTag(xml, tags, "sign_type", "MD5", false)
 	addTag(xml, tags, "nonce_str", string(_GetRandomBytes(32)), false)
 
 	// sign

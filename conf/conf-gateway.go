@@ -12,6 +12,7 @@
       "listen-port": 7080,
       "worker-num": 5,
       "timeout": 0,
+      "order-expire-minutes": 120,
       "endpoints": {
          "health-check": "/health",
          "create-pay": "/create-pay",
@@ -96,6 +97,7 @@ type WxPayServiceConf struct {
 	ListenPort int    `json:"listen-port"`
 	WorkerNum  int    `json:"worker-num"`
 	Timeout    int
+	OrderExpireMinutes int64 `json:"order-expire-minutes"`
 	Endpoints  EndpointConf
 	Merchants  []MerchantConf
 	Apps       []PayApps
@@ -152,6 +154,10 @@ func CheckGlobalConf() error {
 	for i, _ := range ServiceConf.Apps {
 		app := &ServiceConf.Apps[i]
 		Apps[app.Name] = app
+	}
+
+	if ServiceConf.OrderExpireMinutes <= 0 {
+		ServiceConf.OrderExpireMinutes = 120
 	}
 
 	return nil

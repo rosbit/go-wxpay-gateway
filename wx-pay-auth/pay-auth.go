@@ -4,12 +4,11 @@ package oauth
 //  - 获取token、刷新token
 
 import (
-	"github.com/rosbit/go-wget"
+	"github.com/rosbit/gnet"
 	"go-wxpay-gateway/sign"
 	"net/url"
 	"fmt"
 	"time"
-	"encoding/json"
 )
 
 const (
@@ -89,12 +88,6 @@ func (a *PayAuth) GetAccessToken(openId, code string) error {
 }
 
 func (a *PayAuth) getAccessToken(url string, params map[string]string) error {
-	_, res, _, err := wget.Wget(url, "GET", params, nil)
-	if err != nil {
-		return err
-	}
-	// fmt.Printf("get accessToken ok, res: %v\n", string(res))
-
 	var token struct {
 		Retcode      int
 		Retmsg       string
@@ -103,7 +96,7 @@ func (a *PayAuth) getAccessToken(url string, params map[string]string) error {
 		RefreshToken string  `json:"refresh_token"`
 		RefreshExpiresIn int64 `json:"refresh_token_expires_in"`
 	}
-	if err = json.Unmarshal(res, &token); err != nil {
+	if _, err := gnet.HttpCallJ(url, &token, gnet.Params(params)); err != nil {
 		return err
 	}
 	if token.Retcode != 0 {

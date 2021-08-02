@@ -3,12 +3,11 @@
 package wxpay
 
 import (
-	"github.com/rosbit/go-wget"
+	"github.com/rosbit/gnet"
 	"fmt"
 )
 
-func callWxAPI(httpFunc wget.HttpFunc, url string, method string, postData interface{}) ([]byte, error) {
-	status, content, _, err := httpFunc(url, method, postData, nil)
+func parseHttpRes(status int, content []byte, err error) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -18,14 +17,20 @@ func callWxAPI(httpFunc wget.HttpFunc, url string, method string, postData inter
 	return content, nil
 }
 
+func callWxAPI(httpFunc gnet.HttpFunc, url string, method string, postData interface{}) ([]byte, error) {
+	status, content, _, err := httpFunc(url, gnet.M(method), gnet.Params(postData))
+	return parseHttpRes(status, content, err)
+}
+
 func _CallWxAPI(url string, method string, postData interface{}) ([]byte, error) {
-	return callWxAPI(wget.Wget, url, method, postData)
+	return callWxAPI(gnet.Http, url, method, postData)
 }
 
 func _CallSecureWxAPI(url string, method string, postData interface{}, certFile, keyFile string) ([]byte, error) {
-	req, err := wget.NewHttpsRequestWithCerts(0, certFile, keyFile)
+	req, err := gnet.NewHttpsRequestWithCerts(certFile, keyFile)
 	if err != nil {
 		return nil, err
 	}
-	return callWxAPI(req.Run, url, method, postData)
+	status, content, _, err := req.Http(url, method, postData, nil)
+	return parseHttpRes(status, content, err)
 }
