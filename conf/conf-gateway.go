@@ -32,7 +32,8 @@
              "mch-api-key": "",
              "mch-cert-pem-file": "your-cert-pem-file-name, only used when refunding",
              "mch-key-pem-file": "your-key-pem-file-name, only used when refunding",
-             "mch-cert-serialno": "optional, only used when real-name getinfo"
+             "mch-cert-serialno": "optional, only used when real-name getinfo",
+             "receipt": true
          }
       ],
       "apps": [
@@ -85,6 +86,7 @@ type MerchantConf struct {
 	MchCertPemFile  string `json:"mch-cert-pem-file"`
 	MchKeyPemFile   string `json:"mch-key-pem-file"`
 	MchCertSerialNo string `json:"mch-cert-serialno"`
+	Receipt bool `json:"receipt"`
 }
 
 type PayApps struct {

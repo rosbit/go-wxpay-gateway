@@ -6,9 +6,9 @@
 package main
 
 import (
+	"go-wxpay-gateway/conf"
 	"os"
 	"fmt"
-	"go-wxpay-gateway/conf"
 )
 
 // variables set via go build -ldflags

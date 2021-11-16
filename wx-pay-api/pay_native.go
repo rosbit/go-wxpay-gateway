@@ -10,6 +10,7 @@ func NativePay(
 	appId  string,
 	mchId  string,
 	mchApiKey string,
+	receipt bool,
 	payBody   string,
 	cbParams  string,
 	orderId string,
@@ -27,7 +28,7 @@ func NativePay(
 		fee = SANDBOX_FEE
 	}
 	var res map[string]string
-	if prepay_id, res, sent, recv, err = payOrder(appId, mchId, mchApiKey, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "NATIVE", productId, "", nil, isSandbox); err != nil {
+	if prepay_id, res, sent, recv, err = payOrder(appId, mchId, mchApiKey, receipt, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "NATIVE", productId, "", nil, isSandbox); err != nil {
 		return
 	}
 	var ok bool

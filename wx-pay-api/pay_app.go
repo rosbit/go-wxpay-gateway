@@ -11,6 +11,7 @@ func AppPay(
 	appId  string,
 	mchId  string,
 	mchApiKey string,
+	receipt bool,
 	payBody   string,
 	cbParams  string,
 	orderId string,
@@ -26,7 +27,7 @@ func AppPay(
 		}*/
 		fee = SANDBOX_FEE
 	}
-	prepayId, _, sent, recv, err = payOrder(appId, mchId, mchApiKey, "APP", payBody, cbParams, orderId, fee, ip, notifyUrl, "APP", "", "", nil, isSandbox)
+	prepayId, _, sent, recv, err = payOrder(appId, mchId, mchApiKey, receipt, "APP", payBody, cbParams, orderId, fee, ip, notifyUrl, "APP", "", "", nil, isSandbox)
 	if err != nil {
 		return
 	}

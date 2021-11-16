@@ -23,7 +23,8 @@
 			"mch-api-key": "商户apiKey",
 			"mch-cert-pem-file": "./路径指向/apiclient_cert.pem",
 			"mch-key-pem-file": "./路径指向/apiclient_key.pem",
-			"mch-cert-serialno": "证书序列号, 用于实名认证getinfo"
+			"mch-cert-serialno": "证书序列号, 用于实名认证getinfo",
+			"receipt": false
 		},
 		{
 			"name": "mch-name-sandbox",

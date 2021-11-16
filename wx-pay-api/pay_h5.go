@@ -12,6 +12,7 @@ func H5Pay(
 	appId  string,
 	mchId  string,
 	mchApiKey string,
+	receipt bool,
 	payBody   string,
 	cbParams  string,
 	orderId string,
@@ -31,7 +32,7 @@ func H5Pay(
 	}
 
 	var res map[string]string
-	if prepay_id, res, sent, recv, err = payOrder(appId, mchId, mchApiKey, "H5", payBody, cbParams, orderId, fee, ip, notifyUrl, "MWEB", "", "", sceneInfo, isSandbox); err != nil {
+	if prepay_id, res, sent, recv, err = payOrder(appId, mchId, mchApiKey, receipt, "H5", payBody, cbParams, orderId, fee, ip, notifyUrl, "MWEB", "", "", sceneInfo, isSandbox); err != nil {
 		return
 	}
 

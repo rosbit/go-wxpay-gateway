@@ -1,9 +1,10 @@
 package rest
 
 import (
-	"net/http"
-	"go-wxpay-gateway/conf"
+	"github.com/rosbit/mgin"
 	"go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/conf"
+	"net/http"
 )
 
 // POST /transfer
@@ -19,7 +20,7 @@ import (
 //  "ip": "ip to create order",
 //  "debug": false|true, default is false
 // }
-func Transfer(w http.ResponseWriter, r *http.Request) {
+func Transfer(c *mgin.Context) {
 	var transferParam struct {
 		AppId    string
 		PayApp   string
@@ -32,15 +33,15 @@ func Transfer(w http.ResponseWriter, r *http.Request) {
 		Debug    bool
 	}
 
-	if code, err := _ReadJson(r, &transferParam); err != nil {
-		_WriteError(w, code, err.Error())
+	if code, err := c.ReadJSON(&transferParam); err != nil {
+		c.Error(code, err.Error())
 		return
 	}
 
 	isSandbox := _IsSandbox(transferParam.PayApp)
 	mchConf, ok := conf.GetAppAttrs(transferParam.PayApp)
 	if !ok {
-		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
+		c.Error(http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
 
@@ -59,10 +60,10 @@ func Transfer(w http.ResponseWriter, r *http.Request) {
 		isSandbox,
 	)
 	if err != nil {
-		sendResultWithMsg(transferParam.Debug, w, sent, recv, err)
+		sendResultWithMsg(c, transferParam.Debug, sent, recv, err)
 		return
 	}
-	sendResultWithMsg(transferParam.Debug, w, sent, recv, nil, map[string]interface{} {
+	sendResultWithMsg(c, transferParam.Debug, sent, recv, nil, map[string]interface{} {
 		"result": res,
 	})
 }

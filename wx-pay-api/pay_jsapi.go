@@ -11,6 +11,7 @@ func JSAPIPay(
 	appId  string,
 	mchId  string,
 	mchApiKey string,
+	receipt bool,
 	payBody   string,
 	cbParams  string,
 	orderId string,
@@ -27,7 +28,7 @@ func JSAPIPay(
 		}*/
 		fee = SANDBOX_FEE
 	}
-	if prepay_id, _, sent, recv, err = payOrder(appId, mchId, mchApiKey, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "JSAPI", "", openId, nil, isSandbox); err != nil {
+	if prepay_id, _, sent, recv, err = payOrder(appId, mchId, mchApiKey, receipt, "WEB", payBody, cbParams, orderId, fee, ip, notifyUrl, "JSAPI", "", openId, nil, isSandbox); err != nil {
 		return
 	}
 

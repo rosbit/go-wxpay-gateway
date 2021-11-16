@@ -1,9 +1,10 @@
 package rest
 
 import (
-	"net/http"
-	"go-wxpay-gateway/conf"
+	"github.com/rosbit/mgin"
 	"go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/conf"
+	"net/http"
 )
 
 // POST /queryorder
@@ -14,27 +15,27 @@ import (
 //      "orderId": "unique-order-id",
 //      "debug": false|true, default is false
 // }
-func CloseOrder(w http.ResponseWriter, r *http.Request) {
+func CloseOrder(c *mgin.Context) {
 	var closeParam struct {
 		AppId   string
 		PayApp  string
 		OrderId string
 		Debug bool
 	}
-	if code, err := _ReadJson(r, &closeParam); err != nil {
-		_WriteError(w, code, err.Error())
+	if code, err := c.ReadJSON(&closeParam); err != nil {
+		c.Error(code, err.Error())
 		return
 	}
 
 	isSandbox := _IsSandbox(closeParam.PayApp)
 	mchConf, ok := conf.GetAppAttrs(closeParam.PayApp)
 	if !ok {
-		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
+		c.Error(http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
 
 	if closeParam.OrderId == "" {
-		_WriteError(w, http.StatusBadRequest, "Please specify orderId")
+		c.Error(http.StatusBadRequest, "Please specify orderId")
 		return
 	}
 
@@ -45,6 +46,6 @@ func CloseOrder(w http.ResponseWriter, r *http.Request) {
 		closeParam.OrderId,
 		isSandbox,
 	)
-	sendResultWithMsg(closeParam.Debug, w, sent, recv, err)
+	sendResultWithMsg(c, closeParam.Debug, sent, recv, err)
 }
 

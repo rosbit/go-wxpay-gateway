@@ -26,6 +26,7 @@ func payOrder(
 	appId string,
 	mchId string,
 	mchApiKey string,
+	receipt bool,
 	deviceInfo string,
 	payBody string,
 	cbParams string,
@@ -57,6 +58,9 @@ func payOrder(
 	addTag(xml, tags, "time_expire", genExpire(), false)
 	if sceneInfo != nil {
 		addTag(xml, tags, "scene_info", string(sceneInfo), false)
+	}
+	if receipt {
+		addTag(xml, tags, "receipt", "Y", false)
 	}
 	// sign
 	signature := createMd5Signature(tags, mchApiKey)

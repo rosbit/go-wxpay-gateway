@@ -1,10 +1,11 @@
 package rest
 
 import (
+	"github.com/rosbit/mgin"
 	"net/http"
 )
 
-func sendResultWithMsg(debug bool, w http.ResponseWriter, sent, recv []byte, err error, extra ...map[string]interface{}) {
+func sendResultWithMsg(c *mgin.Context, debug bool, sent, recv []byte, err error, extra ...map[string]interface{}) {
 	status, msg := func() (int, string) {
 		if err != nil {
 			return http.StatusInternalServerError, err.Error()
@@ -24,5 +25,5 @@ func sendResultWithMsg(debug bool, w http.ResponseWriter, sent, recv []byte, err
 			res[k] = v
 		}
 	}
-	_WriteJson(w, status, res)
+	c.JSON(status, res)
 }

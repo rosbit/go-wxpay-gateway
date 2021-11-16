@@ -1,9 +1,10 @@
 package rest
 
 import (
-	"net/http"
-	"go-wxpay-gateway/conf"
+	"github.com/rosbit/mgin"
 	"go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/conf"
+	"net/http"
 )
 
 // POST /refundment
@@ -20,7 +21,7 @@ import (
 //	    "notifyUrl": "your notify url, which can be accessed outside",
 //      "debug": false|true, default is false
 // }
-func CreateRefundment(w http.ResponseWriter, r *http.Request) {
+func CreateRefundment(c *mgin.Context) {
 	var refundParam struct {
 		AppId         string
 		PayApp        string
@@ -34,15 +35,15 @@ func CreateRefundment(w http.ResponseWriter, r *http.Request) {
 		Debug         bool
 	}
 
-	if code, err := _ReadJson(r, &refundParam); err != nil {
-		_WriteError(w, code, err.Error())
+	if code, err := c.ReadJSON(&refundParam); err != nil {
+		c.Error(code, err.Error())
 		return
 	}
 
 	isSandbox := _IsSandbox(refundParam.PayApp)
 	mchConf, ok := conf.GetAppAttrs(refundParam.PayApp)
 	if !ok {
-		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
+		c.Error(http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
 
@@ -53,7 +54,7 @@ func CreateRefundment(w http.ResponseWriter, r *http.Request) {
 	} else if refundParam.OrderId != "" {
 		refundFn, id = wxpay.RefundByOrderId, refundParam.OrderId
 	} else {
-		_WriteError(w, http.StatusBadRequest, "Please specify transactionId or orderId")
+		c.Error(http.StatusBadRequest, "Please specify transactionId or orderId")
 		return
 	}
 
@@ -72,10 +73,10 @@ func CreateRefundment(w http.ResponseWriter, r *http.Request) {
 		isSandbox,
 	)
 	if err != nil {
-		sendResultWithMsg(refundParam.Debug, w, sent, recv, err)
+		sendResultWithMsg(c, refundParam.Debug, sent, recv, err)
 		return
 	}
-	sendResultWithMsg(refundParam.Debug, w, sent, recv, nil, map[string]interface{} {
+	sendResultWithMsg(c, refundParam.Debug, sent, recv, nil, map[string]interface{} {
 		"result": refundNotifyParams,
 	})
 }

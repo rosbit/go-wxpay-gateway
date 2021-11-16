@@ -1,19 +1,20 @@
 package rest
 
 import (
+	"github.com/rosbit/mgin"
+	"go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/conf"
 	"net/http"
 	"fmt"
 	"log"
 	"io/ioutil"
-	"go-wxpay-gateway/conf"
-	"go-wxpay-gateway/wx-pay-api"
 )
 
 const (
 	NOTIFY_APP_NAME = "app"
 )
 
-func verifyNotify(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseNotifyBody, prompt string) {
+func verifyNotify(c *mgin.Context, fnParse wxpay.FnParseNotifyBody, prompt string) {
 	returnCode, returnMsg := "SUCCESS", "OK"
 	var params wxpay.INotifyParams
 	var err error
@@ -32,7 +33,7 @@ func verifyNotify(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseN
 			code = http.StatusNotAcceptable
 			errMsg = err.Error()
 		}
-		_WriteJson(w, code, map[string]interface{}{
+		c.JSON(code, map[string]interface{}{
 			"code": code,
 			"msg": errMsg,
 			"params": params,
@@ -40,17 +41,17 @@ func verifyNotify(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseN
 		})
 	}()
 
-	q := r.URL.Query()
-	appName := q.Get(NOTIFY_APP_NAME)
+	appName := c.QueryParam(NOTIFY_APP_NAME)
 	mchConf, ok := conf.GetAppAttrs(appName)
 	if !ok {
 		returnCode = "FAIL"
 		returnMsg  = "bad request"
-		log.Printf("[%s] unknow app-name %s in uri: %s\n", prompt, appName, r.RequestURI)
+		log.Printf("[%s] unknow app-name %s in uri: %s\n", prompt, appName, c.Request().RequestURI)
 		return
 	}
 
 	// read post body
+	r := c.Request()
 	if r.Body == nil {
 		returnCode = "FAIL"
 		returnMsg  = "bad request"
@@ -71,11 +72,11 @@ func verifyNotify(w http.ResponseWriter, r *http.Request, fnParse wxpay.FnParseN
 }
 
 // POST /verify-notify-pay?app=<appName>
-func VerifyNotifyPayment(w http.ResponseWriter, r *http.Request) {
-	verifyNotify(w, r, wxpay.ParsePayNotifyBody, "pay-notify")
+func VerifyNotifyPayment(c *mgin.Context) {
+	verifyNotify(c, wxpay.ParsePayNotifyBody, "pay-notify")
 }
 
 // POST /verify-notify-refund?app=<appName>
-func VerifyNotifyRefundment(w http.ResponseWriter, r *http.Request) {
-	verifyNotify(w, r, wxpay.ParseRefundNotifyBody, "refund-notify")
+func VerifyNotifyRefundment(c *mgin.Context) {
+	verifyNotify(c, wxpay.ParseRefundNotifyBody, "refund-notify")
 }

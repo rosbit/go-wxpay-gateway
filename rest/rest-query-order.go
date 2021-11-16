@@ -1,9 +1,10 @@
 package rest
 
 import (
-	"net/http"
-	"go-wxpay-gateway/conf"
+	"github.com/rosbit/mgin"
 	"go-wxpay-gateway/wx-pay-api"
+	"go-wxpay-gateway/conf"
+	"net/http"
 )
 
 // POST /queryorder
@@ -15,7 +16,7 @@ import (
 //      "orderId": "unique-order-id",
 //      "debug": false|true, default is false
 // }
-func QueryOrder(w http.ResponseWriter, r *http.Request) {
+func QueryOrder(c *mgin.Context) {
 	var queryParam struct {
 		AppId         string
 		PayApp        string
@@ -23,15 +24,15 @@ func QueryOrder(w http.ResponseWriter, r *http.Request) {
 		OrderId       string
 		Debug bool
 	}
-	if code, err := _ReadJson(r, &queryParam); err != nil {
-		_WriteError(w, code, err.Error())
+	if code, err := c.ReadJSON(&queryParam); err != nil {
+		c.Error(code, err.Error())
 		return
 	}
 
 	isSandbox := _IsSandbox(queryParam.PayApp)
 	mchConf, ok := conf.GetAppAttrs(queryParam.PayApp)
 	if !ok {
-		_WriteError(w, http.StatusBadRequest, "Unknown pay-app name")
+		c.Error(http.StatusBadRequest, "Unknown pay-app name")
 		return
 	}
 
@@ -44,7 +45,7 @@ func QueryOrder(w http.ResponseWriter, r *http.Request) {
 		queryFunc = wxpay.QueryByOrderId
 		id = queryParam.OrderId
 	} else {
-		_WriteError(w, http.StatusBadRequest, "Please specify transactionId or orderId")
+		c.Error(http.StatusBadRequest, "Please specify transactionId or orderId")
 		return
 	}
 	res, sent, recv, err := queryFunc(
@@ -55,10 +56,10 @@ func QueryOrder(w http.ResponseWriter, r *http.Request) {
 		isSandbox,
 	)
 	if err != nil {
-		sendResultWithMsg(queryParam.Debug, w, sent, recv, err)
+		sendResultWithMsg(c, queryParam.Debug, sent, recv, err)
 		return
 	}
-	sendResultWithMsg(queryParam.Debug, w, sent, recv, nil, map[string]interface{} {
+	sendResultWithMsg(c, queryParam.Debug, sent, recv, nil, map[string]interface{} {
 		"result": res,
 	})
 }
