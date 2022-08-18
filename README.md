@@ -390,3 +390,115 @@
        - 请求参数: 应用退款结果URL收到的POST Body内容
        - 响应结果:
            - 参考校验支付支付结果
+
+ 1. V3版商家转账到零钱
+    - 对应配置项: `v3-transfer`
+    - 访问方法: POST
+    - URI: 直接根据配置值访问，如`/v3/transfer`
+    - **[注意]** 该接口配置成一个内网可以访问的API
+    - 本接口只是“发出转账申请”，成功申请后需要在后台审核确认才能转出零钱
+    - 请求参数
+
+      ```json
+      {
+          "payApp": "go-wxpay-gateway配置文件中的应用名",
+          "appId": "应用的appId",
+          "batchNo": "本次转账的批次，应用内唯一",
+          "batchName": "批次名称",
+          "batchRemark": "批次描述",
+          "details": [
+             {
+               "tradeNo": "批次内唯一交易id",
+               "amount": 30, // 金额，单位"分",
+               "desc": "描述",
+               "openId": "收款人在appId内的openId",
+               "userName": "2000以上，必须给收款人实名"
+             },
+             {...}
+          ]
+      }
+      ```
+
+    - 响应结果
+
+      ```json
+      {
+          "code": 200,
+          "msg": "OK",
+          "result":{
+             "wxBatchId":"1030000040101068797782022081801027450232" // 微信批次id
+          }
+      }
+      ```
+
+ 1. V3版商家批次查询
+    - 对应配置项: `v3-query-transfer`
+    - 访问方法: POST
+    - URI: 直接根据配置值访问，如`/v3/query-transfer`
+    - **[注意]** 该接口配置成一个内网可以访问的API
+    - 请求参数
+
+      ```json
+      {
+          "payApp": "go-wxpay-gateway配置文件中的应用名",
+          "status": "查询的状态值",  //  "ALL" | "SUCCESS" | "FAIL", 不给用ALL
+          "needDetail": true, // 是否展示详情
+          "wxBatchId": "转账申请成功返回的微信批次id"
+             "------ or -----": "或者",
+          "batchNo": "转账的批次，应用内唯一"
+      }
+      ```
+
+    - 响应结果
+
+      ```json
+      {
+          "code": 200,
+          "msg": "OK",
+          "result":{
+             "status":"FINISHED",
+             "total": 1, // 数目
+             "details": [
+                {
+                   "detail_id":"1040000040101068797782022081801020503999", // 微信详情id
+                   "out_detail_no":"tt202208170001", // 对应自己的tradeNo
+                   "detail_status":"SUCCESS"         // 详情状态
+                }
+             ]
+          }
+      }
+      ```
+
+ 1. V3版商家转账详情查询
+    - 对应配置项: `v3-query-transfer-detail`
+    - 访问方法: POST
+    - URI: 直接根据配置值访问，如`/v3/query-transfer-detail`
+    - **[注意]** 该接口配置成一个内网可以访问的API
+    - 请求参数
+
+      ```json
+      {
+          "payApp": "go-wxpay-gateway配置文件中的应用名",
+
+          "wxBatchId": "转账申请成功返回的微信批次id",
+          "wxDetailId": "批次查询时返回的微信详情id",
+             "------ or -----": "或者",
+          "batchNo": "转账的批次，应用内唯一",
+          "tradeNo": "转账时详情的唯一id"
+      }
+      ```
+
+    - 响应结果
+
+      ```json
+      {
+          "code": 200,
+          "msg": "OK",
+          "result":{
+              "detail_status":"SUCCESS",  // 详情状态
+              "amount": 30, // 金额,单位分
+              "remark": "转账时的备注",
+              "reason": "失败原因。如果成功，返回空"
+          }
+      }
+      ```

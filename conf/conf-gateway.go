@@ -21,6 +21,9 @@
          "close-order": "/close-order",
          "transfer": "/transfer",
          "query-transfer": "/query-transfer",
+         "v3-transfer": "/v3/transfer",
+         "v3-query-transfer": "/v3/query-transfer",
+         "v3-query-transfer-detail": "/v3/query-transfer-detail",
          "realname-auth-root": "/realname/auth -- will be replaced with ${realname-auth-root}/:op {url|identity|getinfo}",
          "verify-notify-pay": "/verify-notify-pay",
          "verify-notify-refund": "/verify-notify-refund"
@@ -33,6 +36,7 @@
              "mch-cert-pem-file": "your-cert-pem-file-name, only used when refunding",
              "mch-key-pem-file": "your-key-pem-file-name, only used when refunding",
              "mch-cert-serialno": "optional, only used when real-name getinfo",
+			 "wxpay-v3-cert": "optional, only used for batch-transfer",
              "receipt": true
          }
       ],
@@ -73,6 +77,9 @@ type EndpointConf struct {
 	QueryOrder    string `json:"query-order"`
 	CloseOrder    string `json:"close-order"`
 	Transfer      string `json:"transfer"`
+	V3Transfer    string `json:"v3-transfer"`
+	V3QueryTransfer string `json:"v3-query-transfer"`
+	V3QueryTransferDetail string `json:"v3-query-transfer-detail"`
 	QueryTransfer string `json:"query-transfer"`
 	RealnameAuthRoot   string `json:"realname-auth-root"`
 	VerifyNotifyPay    string `json:"verify-notify-pay"`
@@ -86,6 +93,7 @@ type MerchantConf struct {
 	MchCertPemFile  string `json:"mch-cert-pem-file"`
 	MchKeyPemFile   string `json:"mch-key-pem-file"`
 	MchCertSerialNo string `json:"mch-cert-serialno"`
+	WxpayV3Cert     string `json:"wxpay-v3-cert"`
 	Receipt bool `json:"receipt"`
 }
 

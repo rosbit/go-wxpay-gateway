@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// POST /queryorder
+// POST /closeorder
 // POST Body:
 // {
 //      "appId": "appId of mp/mini-prog",
@@ -39,13 +39,19 @@ func CloseOrder(c *mgin.Context) {
 		return
 	}
 
-	sent, recv, err := wxpay.CloseOrder(
+	res, sent, recv, err := wxpay.CloseOrder(
 		closeParam.AppId,
 		mchConf.MchId,
 		mchConf.MchApiKey,
 		closeParam.OrderId,
 		isSandbox,
 	)
-	sendResultWithMsg(c, closeParam.Debug, sent, recv, err)
+	if err != nil {
+		sendResultWithMsg(c, closeParam.Debug, sent, recv, err)
+		return
+	}
+	sendResultWithMsg(c, closeParam.Debug, sent, recv, nil, map[string]interface{}{
+		"result": res,
+	})
 }
 

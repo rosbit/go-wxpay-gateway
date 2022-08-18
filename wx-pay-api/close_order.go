@@ -2,13 +2,13 @@
 
 package wxpay
 
-func postClose(orderId string, xml []byte, isSandbox bool, apiKey string) (recv []byte, err error) {
+func postClose(orderId string, xml []byte, isSandbox bool, apiKey string) (res map[string]string, recv []byte, err error) {
 	orderclose_url := _GetApiUrl(UT_ORDER_CLOSE, isSandbox)
 	if recv, err = _CallWxAPI(orderclose_url, "POST", xml); err != nil {
 		return
 	}
 
-	_, err = parseXmlResult(recv, apiKey)
+	res, err = parseXmlResult(recv, apiKey)
 	return
 }
 
@@ -18,7 +18,7 @@ func CloseOrder(
 	mchApiKey string,
 	orderId   string,
 	isSandbox bool,
-) (xmlstr, recv []byte, err error) {
+) (res map[string]string, xmlstr, recv []byte, err error) {
 	/*
 	if isSandbox {
 		var err error
@@ -40,6 +40,6 @@ func CloseOrder(
 	addTag(xml, params, "sign", signature, false)
 
 	xmlstr = xml.ToXML()
-	recv, err = postClose(orderId, xmlstr, isSandbox, mchApiKey)
+	res, recv, err = postClose(orderId, xmlstr, isSandbox, mchApiKey)
 	return
 }

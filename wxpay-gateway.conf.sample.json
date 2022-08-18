@@ -12,6 +12,9 @@
 		"close-order": "/wxpay/close-order",
 		"transfer": "/transfer",
 		"query-transfer": "/query-transfer",
+		"v3-transfer": "/v3/transfer",
+		"v3-query-transfer": "/v3/query-transfer",
+		"v3-query-transfer-detail": "/v3/query-transfer-detail",
 		"realname-auth-root": "/realname/auth -- 实名认证根路径,会添加后缀 /:op  op 可以是 {url|identity|getinfo}",
 		"verify-notify-pay": "/verify-notify-pay",
 		"verify-notify-refund": "/verify-notify-refund"
@@ -24,6 +27,7 @@
 			"mch-cert-pem-file": "./路径指向/apiclient_cert.pem",
 			"mch-key-pem-file": "./路径指向/apiclient_key.pem",
 			"mch-cert-serialno": "证书序列号, 用于实名认证getinfo",
+			"wxpay-v3-cert": "optional, only used for batch-transfer",
 			"receipt": false
 		},
 		{

@@ -35,6 +35,9 @@ func StartService() error {
 	api.POST(endpoints.CloseOrder,   rest.CloseOrder)
 	api.POST(endpoints.Transfer,     rest.Transfer)
 	api.POST(endpoints.QueryTransfer,rest.QueryTransfer)
+	api.POST(endpoints.V3Transfer,           rest.V3Transfer)
+	api.POST(endpoints.V3QueryTransfer,      rest.V3QueryTransfer)
+	api.POST(endpoints.V3QueryTransferDetail,rest.V3QueryTransferDetail)
 	api.POST(endpoints.VerifyNotifyPay,    rest.VerifyNotifyPayment)
 	api.POST(endpoints.VerifyNotifyRefund, rest.VerifyNotifyRefundment)
 	if len(endpoints.RealnameAuthRoot) > 0 {
