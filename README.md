@@ -495,7 +495,7 @@
           "code": 200,
           "msg": "OK",
           "result":{
-              "detail_status":"SUCCESS",  // 详情状态
+              "status":"SUCCESS",  // 详情状态
               "amount": 30, // 金额,单位分
               "remark": "转账时的备注",
               "reason": "失败原因。如果成功，返回空"
