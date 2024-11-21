@@ -88,12 +88,15 @@ type EndpointConf struct {
 
 type MerchantConf struct {
 	Name      string
-	MchId     string `json:"mch-id"`
-	MchApiKey string `json:"mch-api-key"`
-	MchCertPemFile  string `json:"mch-cert-pem-file"`
-	MchKeyPemFile   string `json:"mch-key-pem-file"`
-	MchCertSerialNo string `json:"mch-cert-serialno"`
-	WxpayV3Cert     string `json:"wxpay-v3-cert"`
+	MchId     string `json:"mch-id"`                   // 微信商户号
+	MchApiKey string `json:"mch-api-key"`              // 商户APIv2密钥
+	MchCertPemFile  string `json:"mch-cert-pem-file"`  // 商户API证书: 公钥
+	MchKeyPemFile   string `json:"mch-key-pem-file"`   // 商户API证书: 私钥
+	MchCertSerialNo string `json:"mch-cert-serialno"`  // 商户证书序列号。
+	WxpayV3Cert     string `json:"wxpay-v3-cert"`      // APIv3平台证书。[该证书5年有效期，平台证书模式逐渐弃用]
+	WxpayV3Key      string `json:"wxpay-v3-key"`       // APIv3密钥。[当WxpayV3Cert为空时有效，表示使用微信支付公钥模式]
+	WxpayPubkeyFile string `json:"wxpay-pubkey-file"`  // 微信支付公钥[当WxpayV3Cert为空时有效，表示使用微信支付公钥模式]
+	WxpayPubkeyId   string `json:"wxpay-pubkey-id"`    // 微信支付公钥ID[当WxpayV3Cert为空时有效，表示使用微信支付公钥模式]
 	Receipt bool `json:"receipt"`
 }
 

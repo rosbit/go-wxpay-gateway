@@ -11,13 +11,14 @@ import (
 	"go-wxpay-gateway/conf"
 	"go-wxpay-gateway/rest"
 	"net/http"
+	"os"
 	"fmt"
 )
 
 func StartService() error {
 	serviceConf := &conf.ServiceConf
 
-	api := mgin.NewMgin(mgin.WithLogger("wxpay-gateway"))
+	api := mgin.NewMgin(mgin.WithLogger("wxpay-gateway"), mgin.CreateBodyDumpingHandler(os.Stderr, "raw body"))
 	endpoints := serviceConf.Endpoints
 
 	// set router

@@ -48,9 +48,9 @@ func AuthRealname(c *mgin.Context) {
 //     "redirectUrl": "GET形式的回调url，外网可以访问，微信支付服务会加上参数'?code=xxx&state=xxx'"
 // }
 //
-// 1. 用户在统一获取实名信心或在网站填写“姓名”、“身份证”，提交
-// 2. 表单处理服务调用本接口得到一个服务微信支付服务的url
-// 3. 把第2步得到的url通过 302 的返回码 让用户浏览器跳转过去
+// 1. 用户在统一获取实名信息或在网站填写“姓名”、“身份证”，提交
+// 2. 表单处理服务调用本接口得到一个微信支付服务的url
+// 3. 在用户浏览器通过 302 跳转到第2步得到的url
 // 4. 用户授权，则浏览器会跳转到参数中的redirectUrl，结合AuthRealnameIdentity()/authRealnameGetinfo()完成余下的步骤
 func authRealnameUrl(c *mgin.Context) {
 	var authRealnameParams struct {
