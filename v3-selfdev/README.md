@@ -45,12 +45,12 @@
   {
      "code": 200,
      "msg": "OK",
-     "result: {
-        "out_bill_no" : "plfk2020042013",
-        "transfer_bill_no" : "1330000071100999991182020050700019480001",
-        "create_time" : "2015-05-20T13:29:35.120+08:00",
-        "state" : "ACCEPTED"
-        "package_info" : "affffddafdfafddffda=="
+     "result": {
+        "out_bill_no": "plfk2020042013",
+        "transfer_bill_no": "1330000071100999991182020050700019480001",
+        "create_time": "2015-05-20T13:29:35.120+08:00",
+        "state": "ACCEPTED"
+        "package_info": "affffddafdfafddffda=="
      },
   }
   ```
@@ -78,11 +78,11 @@
   {
      "code": 200,
      "msg": "OK",
-     "result: {
-        "out_bill_no" : "plfk2020042013",
-        "transfer_bill_no" : "1330000071100999991182020050700019480001",
-        "state" : "CANCELING",
-        "update_time" : "2015-05-20T13:29:35.120+08:00"
+     "result": {
+        "out_bill_no": "plfk2020042013",
+        "transfer_bill_no": "1330000071100999991182020050700019480001",
+        "state": "CANCELING",
+        "update_time": "2015-05-20T13:29:35.120+08:00"
      }
   }
   ```
@@ -110,19 +110,19 @@
   {
      "code": 200,
      "msg": "OK",
-     "result: {
-        "mch_id" : "1900001109",
-        "out_bill_no" : "plfk2020042013",
-        "transfer_bill_no" : "1330000071100999991182020050700019480001",
-        "appid" : "wxf636efh567hg4356",
-        "state" : "SUCCESS",
-        "transfer_amount" : 400000,
-        "transfer_remark" : "新会员开通有礼",
-        "fail_reason" : "PAYEE_ACCOUNT_ABNORMAL",
-        "openid" : "o-MYE42l80oelYMDE34nYD456Xoy",
-        "user_name" : "757b340b45ebef5467rter35gf464344v3542sdf4t6re4tb4f54ty45t4yyry45",
-        "create_time" : "2015-05-20T13:29:35.120+08:00",
-        "update_time" : "2015-05-20T13:29:35.120+08:00"
+     "result": {
+        "mch_id": "1900001109",
+        "out_bill_no": "plfk2020042013",
+        "transfer_bill_no": "1330000071100999991182020050700019480001",
+        "appid": "wxf636efh567hg4356",
+        "state": "SUCCESS",
+        "transfer_amount": 400000,
+        "transfer_remark": "新会员开通有礼",
+        "fail_reason": "PAYEE_ACCOUNT_ABNORMAL",
+        "openid": "o-MYE42l80oelYMDE34nYD456Xoy",
+        "user_name": "757b340b45ebef5467rter35gf464344v3542sdf4t6re4tb4f54ty45t4yyry45",
+        "create_time": "2015-05-20T13:29:35.120+08:00",
+        "update_time": "2015-05-20T13:29:35.120+08:00"
      }
   }
   ```
@@ -170,7 +170,7 @@
             "mch_id": "1900001109",
             "transfer_amount": 2000,
             "openid": "o-MYE421800elYMDE34nYD456Xoy",
-            "fail_reason:" "PAYEE_ACCOUNT_ABNORMAL",
+            "fail_reason": "PAYEE_ACCOUNT_ABNORMAL",
             "create_time": "2015-05-20T13:29:35+08:00",
             "update_time": "2023-08-15T20:33:22+08:00"
          }
