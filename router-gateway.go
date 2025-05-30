@@ -45,6 +45,18 @@ func StartService() error {
 		realnameAuthEndpoint := appendEndpointParam(endpoints.RealnameAuthRoot, rest.REALNAME_TYPE_NAME)
 		api.POST(realnameAuthEndpoint, rest.AuthRealname)
 	}
+	if len(endpoints.V3TransferBills) > 0 {
+		api.POST(endpoints.V3TransferBills, rest.V3TransferBills)
+	}
+	if len(endpoints.V3CancelTransferBills) > 0 {
+		api.POST(endpoints.V3CancelTransferBills, rest.V3CancelTransferBills)
+	}
+	if len(endpoints.V3QueryTransferBills) > 0 {
+		api.POST(endpoints.V3QueryTransferBills, rest.V3QueryTransferBills)
+	}
+	if len(endpoints.V3VerifyTransferBills) > 0 {
+		api.POST(endpoints.V3VerifyTransferBills, rest.V3VerifyTransferBills)
+	}
 	if len(endpoints.HealthCheck) > 0 {
 		api.GET(endpoints.HealthCheck, func(c *mgin.Context) {
 			c.String(http.StatusOK, "OK\n")

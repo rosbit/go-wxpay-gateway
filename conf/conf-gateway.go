@@ -24,9 +24,13 @@
          "v3-transfer": "/v3/transfer",
          "v3-query-transfer": "/v3/query-transfer",
          "v3-query-transfer-detail": "/v3/query-transfer-detail",
+		 "v3-transfer-bills": "/v3/transfer-bills",
+		 "v3-cancel-transfer-bills": "/v3/cancel-transfer-bills",
+		 "v3-query-transfer-bills": "/v3/query-transfer-bills",
+		 "v3-verify-transfer-bills": "/v3/verify-transfer-bills/:payApp",
          "realname-auth-root": "/realname/auth -- will be replaced with ${realname-auth-root}/:op {url|identity|getinfo}",
          "verify-notify-pay": "/verify-notify-pay",
-         "verify-notify-refund": "/verify-notify-refund"
+         "verify-notify-refund": "/verify-notify-refund",
       },
       "merchants": [
          {
@@ -35,8 +39,11 @@
              "mch-api-key": "",
              "mch-cert-pem-file": "your-cert-pem-file-name, only used when refunding",
              "mch-key-pem-file": "your-key-pem-file-name, only used when refunding",
-             "mch-cert-serialno": "optional, only used when real-name getinfo",
-			 "wxpay-v3-cert": "optional, only used for batch-transfer",
+             "mch-cert-serialno": "平台证书序列号, optional, only used when real-name getinfo",
+             "wxpay-v3-cert": "optional, only used for batch-transfer, APIv3平台证书[该证书5年有效期，平台证书模式逐渐弃用]",
+             "wxpay-v3-key": "APIv3密钥。[当wxpay-v3-cert为空时有效，表示使用微信支付公钥模式]",
+             "wxpay-pubkey-file": "微信支付公钥，[当wxpay-v3-cert为空时有效，表示使用微信支付公钥模式]",
+             "wxpay-pubkey-id": "微信支付公钥ID[当wxpay-v3-cert为空时有效，表示使用微信支付公钥模式]",
              "receipt": true
          }
       ],
@@ -80,6 +87,10 @@ type EndpointConf struct {
 	V3Transfer    string `json:"v3-transfer"`
 	V3QueryTransfer string `json:"v3-query-transfer"`
 	V3QueryTransferDetail string `json:"v3-query-transfer-detail"`
+	V3TransferBills string `json:"v3-transfer-bills"`
+	V3CancelTransferBills string `json:"v3-cancel-transfer-bills"`
+	V3QueryTransferBills  string `json:"v3-query-transfer-bills"`
+	V3VerifyTransferBills string `json:"v3-verify-transfer-bills"`
 	QueryTransfer string `json:"query-transfer"`
 	RealnameAuthRoot   string `json:"realname-auth-root"`
 	VerifyNotifyPay    string `json:"verify-notify-pay"`
@@ -92,7 +103,7 @@ type MerchantConf struct {
 	MchApiKey string `json:"mch-api-key"`              // 商户APIv2密钥
 	MchCertPemFile  string `json:"mch-cert-pem-file"`  // 商户API证书: 公钥
 	MchKeyPemFile   string `json:"mch-key-pem-file"`   // 商户API证书: 私钥
-	MchCertSerialNo string `json:"mch-cert-serialno"`  // 商户证书序列号。
+	MchCertSerialNo string `json:"mch-cert-serialno"`  // 商户的平台证书序列号。
 	WxpayV3Cert     string `json:"wxpay-v3-cert"`      // APIv3平台证书。[该证书5年有效期，平台证书模式逐渐弃用]
 	WxpayV3Key      string `json:"wxpay-v3-key"`       // APIv3密钥。[当WxpayV3Cert为空时有效，表示使用微信支付公钥模式]
 	WxpayPubkeyFile string `json:"wxpay-pubkey-file"`  // 微信支付公钥[当WxpayV3Cert为空时有效，表示使用微信支付公钥模式]

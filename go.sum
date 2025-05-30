@@ -23,8 +23,8 @@ github.com/mroth/weightedrand v0.4.1 h1:rHcbUBopmi/3x4nnrvwGJBhX9d0vk+KgoLUZeDP6
 github.com/mroth/weightedrand v0.4.1/go.mod h1:3p2SIcC8al1YMzGhAIoXD+r9olo/g/cdJgAD905gyNE=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/rosbit/gnet v0.0.13 h1:YgzsGpr+Q6MiNf+jP5ZEEUSKWsYsDLV+8NCx/+JsKy4=
-github.com/rosbit/gnet v0.0.13/go.mod h1:lnAsUvFsBjdpvA+9FU7xSm7xlf52yhdr8iMu+oUOKow=
+github.com/rosbit/gnet v0.2.0 h1:lu9TMoagncmf7YWqHlR4CCfmkCdlJDsShx1DN3ZSQx0=
+github.com/rosbit/gnet v0.2.0/go.mod h1:lnAsUvFsBjdpvA+9FU7xSm7xlf52yhdr8iMu+oUOKow=
 github.com/rosbit/go-aes v0.0.1 h1:tmOiz5IO6pyQ35nrGClsSw0AAF8bCAZR5zIcK+Hd8uI=
 github.com/rosbit/go-aes v0.0.1/go.mod h1:CyPYFnM8SsrEw2Hvz5QtDIaAQnxy/n8rHv8NR/7Lm5Y=
 github.com/rosbit/mgin v0.2.4 h1:w1EhESAQ25NcKDJPZWoUVcTcOtQF2yTiCJZdsJPWblA=
