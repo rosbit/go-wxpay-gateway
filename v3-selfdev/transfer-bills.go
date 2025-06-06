@@ -12,10 +12,6 @@ import (
 	"net/http"
 )
 
-type createTransferBillsRequest struct {
-	*CreateTransferBillsRequest
-}
-
 // 发起转账: https://pay.weixin.qq.com/doc/v3/merchant/4012716434
 func CreateTransferBills(appName string, req *CreateTransferBillsRequest) (resp json.RawMessage, err error) {
 	mchConf, ok := conf.GetAppAttrs(appName)
@@ -48,20 +44,17 @@ func CreateTransferBills(appName string, req *CreateTransferBillsRequest) (resp 
 		return
 	}
 
-	realReq := &createTransferBillsRequest{
-		CreateTransferBillsRequest: req,
-	}
-
 	if len(req.UserName) > 0 {
 		encryptedUser, e := utils.EncryptOAEPWithPublicKey(req.UserName, wechatpayPublicKey)
 		if e != nil {
 			err = e
 			return
 		}
-		realReq.UserName = encryptedUser
+		req.UserName = encryptedUser
 	}
 
-	timestamp, nonce, bodyStr, signature, e := MakeSignature(mchPrivateKey, "POST", "/v3/fund-app/mch-transfer/transfer-bills", realReq, true)
+	uri := "/v3/fund-app/mch-transfer/transfer-bills"
+	timestamp, nonce, bodyStr, signature, e := MakeSignature(mchPrivateKey, "POST", uri, req, true)
 	if e != nil {
 		err = e
 		return
@@ -77,7 +70,7 @@ func CreateTransferBills(appName string, req *CreateTransferBillsRequest) (resp 
 	}
 	fmt.Fprintf(os.Stderr, "headers: %#v\n", headers)
 
-	status, content, _, e := gnet.JSON("https://api.mch.weixin.qq.com/v3/fund-app/mch-transfer/transfer-bills",
+	status, content, _, e := gnet.JSON(fmt.Sprintf("%s%s", wxpay_api_base_url, uri),
 		gnet.M("POST"),
 		gnet.Params(bytes.NewReader([]byte(bodyStr))),
 		gnet.Headers(headers),

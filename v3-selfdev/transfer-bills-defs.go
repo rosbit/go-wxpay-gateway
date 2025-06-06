@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+const (
+	wxpay_api_base_url = "https://api.mch.weixin.qq.com"
+)
+
 // 各转账场景下需报备的内容，商户需要按照所属转账场景规则传参
 type TransferSceneReportInfo struct {
 	InfoType string `json:"info_type"` // 不能超过15个字符，商户所属转账场景下的信息类型，此字段内容为固定值，需严格按照转账场景报备信息字段说明传参

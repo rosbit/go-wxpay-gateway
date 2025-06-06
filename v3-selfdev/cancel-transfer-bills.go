@@ -44,7 +44,7 @@ func CancelTransferBills(appName string, outBillNo string) (resp json.RawMessage
 		return
 	}
 
-	status, content, _, e := gnet.Http(fmt.Sprintf("https://api.mch.weixin.qq.com%s", uri),
+	status, content, _, e := gnet.Http(fmt.Sprintf("%s%s", wxpay_api_base_url, uri),
 		gnet.M("POST"),
 		gnet.Params(nil),
 		gnet.Headers(map[string]string{
