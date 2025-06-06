@@ -18,13 +18,13 @@ type CreateTransferBillsRequest struct {
 	OutBillNo string `json:"out_bill_no"` // 商户系统内部的商家单号，要求此参数只能由数字、大小写字母组成，在商户系统内部唯一
 	TransferSceneId string `json:"transfer_scene_id"` // 该笔转账使用的转账场景，可前往“商户平台-产品中心-商家转账”中申请。如：1000（现金营销），1006（企业报销）等
 	Openid string `json:"openid"` // 用户在商户appid下的唯一标识。发起转账前需获取到用户的OpenID
-	UserName string `json:"-"` // 收款方真实姓名。需要加密传入，支持标准RSA算法和国密算法，公钥由微信侧提供。
+	UserName string `json:"user_name"` // 收款方真实姓名。需要加密传入，支持标准RSA算法和国密算法，公钥由微信侧提供。
                                        // 转账金额 >= 2,000元时，该笔明细必须填写
 									   // 若商户传入收款用户姓名，微信支付会校验收款用户与输入姓名是否一致，并提供电子回单
 	TransferAmount int32 `json:"transfer_amount"` // 转账金额单位为“分”。
 	TransferRemark string `json:"transfer_remark"` // 转账备注，用户收款时可见该备注信息，UTF8编码，最多允许32个字符
 	NotifyUrl string `json:"notify_url,omitempty"` // 异步接收微信支付结果通知的回调地址，通知url必须为公网可访问的URL，必须为HTTPS，不能携带参数。
-	UserRecvPerception string `json:"user_recv_perception,omitempty"` //  用户收款时感知到的收款原因将根据转账场景自动展示默认内容。如有其他展示需求，可在本字段传入。各场景展示的默认内容和支持传入的内容，可查看产品文档了解
+	UserRecvPerception string `json:"user_recv_perception"` //  用户收款时感知到的收款原因将根据转账场景自动展示默认内容。如有其他展示需求，可在本字段传入。各场景展示的默认内容和支持传入的内容，可查看产品文档了解
 	TransferSceneReportInfos []TransferSceneReportInfo `json:"transfer_scene_report_infos"`// 各转账场景下需报备的内容，商户需要按照所属转账场景规则传参
 }
 

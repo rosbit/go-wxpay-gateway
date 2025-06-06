@@ -3,6 +3,7 @@ package v3sd
 import (
 	"encoding/base64"
 	"encoding/json"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto"
 	"bytes"
@@ -13,7 +14,7 @@ import (
 )
 
 // 对请求参数进行签名
-func MakeSignature(privateKey *rsa.PrivateKey, httpMethod string, uri string, body interface{}, dumpingStrToSign ...bool) (timestamp, nonce, bodyStr, signature string, err error) {
+func MakeSignature(privateKey *rsa.PrivateKey, httpMethod string, uri string, body interface{}, dumpingStrToSign bool, extra ...string) (timestamp, nonce, bodyStr, signature string, err error) {
 	b := &bytes.Buffer{}
 	if body != nil {
 		j := json.NewEncoder(b)
@@ -25,9 +26,16 @@ func MakeSignature(privateKey *rsa.PrivateKey, httpMethod string, uri string, bo
 		b.Truncate(b.Len()-1) // 去掉最后一个换行
 	}
 	bodyStr = b.String()
-	t := time.Now()
-	timestamp = fmt.Sprintf("%d", t.Unix())
-	nonce = fmt.Sprintf("%d", t.UnixNano())
+
+	if len(extra) >= 2 {
+		timestamp = extra[0]
+		nonce     = extra[1]
+	} else {
+		t := time.Now()
+		timestamp = fmt.Sprintf("%d", t.Unix())
+		nonce, _ = generateNonce()
+		// nonce = fmt.Sprintf("%d", t.UnixNano())
+	}
 
 	in := make(chan string)
 	go func() {
@@ -45,7 +53,7 @@ func MakeSignature(privateKey *rsa.PrivateKey, httpMethod string, uri string, bo
 	}()
 
 	h := crypto.Hash.New(crypto.SHA256)
-	if len(dumpingStrToSign) == 0 || !dumpingStrToSign[0] {
+	if !dumpingStrToSign {
 		makeDataToSign(in, h)
 	} else {
 		mw, deferFunc := dumpStrToSign(h)
@@ -78,3 +86,23 @@ func makeDataToSign(in <-chan string, w io.Writer) {
 	}
 }
 
+// GenerateNonce 生成一个长度为 NonceLength 的随机字符串（只包含大小写字母与数字）
+func generateNonce() (string, error) {
+	const (
+		// NonceSymbols 随机字符串可用字符集
+		NonceSymbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		// NonceLength 随机字符串的长度
+		NonceLength = 32
+	)
+
+	bytes := make([]byte, NonceLength)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	symbolsByteLength := byte(len(NonceSymbols))
+	for i, b := range bytes {
+		bytes[i] = NonceSymbols[b%symbolsByteLength]
+	}
+	return string(bytes), nil
+}

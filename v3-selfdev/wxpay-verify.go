@@ -5,6 +5,7 @@ package v3sd
 import (
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 	"go-wxpay-gateway/conf"
+	"encoding/base64"
 	"encoding/json"
 	"crypto/sha256"
 	"crypto/rsa"
@@ -13,6 +14,7 @@ import (
 	"math"
 	"fmt"
 	"io"
+	"os"
 	"bytes"
 	"strconv"
 	"net/http"
@@ -57,7 +59,8 @@ func getVerifyHeader(r *http.Request) (serialNo, nonce, timestamp, signature str
 	serialNo = h.Get(HeaderSerial)
 	nonce    = h.Get(HeaderNonce)
 	timestamp= h.Get(HeaderTimestamp)
-	signature= h.Get(HeaderTimestamp)
+	signature= h.Get(HeaderSignature)
+	fmt.Fprintf(os.Stderr, "Wechatpay-Serial: %s\nWechatpay-Nonce: %s\nWechatpay-Timestamp: %s\nWechatpay-Signature:%s\n", serialNo, nonce, timestamp, signature)
 	return
 }
 
@@ -73,13 +76,19 @@ func verifyAndDecryptBody(pubKey *rsa.PublicKey, mchConf *conf.MerchantConf, r *
 	tr := io.TeeReader(r.Body, b)
 
 	serialNo, nonce, timestamp, signature := getVerifyHeader(r)
-	if serialNo != mchConf.MchCertSerialNo {
+	if serialNo != mchConf.WxpayPubkeyId {
 		err = fmt.Errorf("seaialNo %s not matched", serialNo)
 		return
 	}
 	if err = checkTimestamp(timestamp); err != nil {
 		return
 	}
+	sigBytes, e := base64.StdEncoding.DecodeString(signature)
+	if e != nil {
+		err = e
+		return
+	}
+
 	h := &bytes.Buffer{}
 	// 应答时间戳\n应答随机串\n应答报文主体\n
 	fmt.Fprintf(h, "%s\n%s\n", timestamp, nonce)
@@ -87,8 +96,11 @@ func verifyAndDecryptBody(pubKey *rsa.PublicKey, mchConf *conf.MerchantConf, r *
 	fmt.Fprintf(h, "\n")
 
 	message := h.Bytes()
+	fmt.Fprintf(os.Stderr, "message: %s\n", message)
 	hashed := sha256.Sum256(message)
-	if err = rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, hashed[:], []byte(signature)); err != nil {
+
+	if err = rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, hashed[:], sigBytes); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to rsa.VerifyPKCS1v15: %v\n", err)
 		return
 	}
 
@@ -97,13 +109,16 @@ func verifyAndDecryptBody(pubKey *rsa.PublicKey, mchConf *conf.MerchantConf, r *
 
 	// AEAD_AES_256_GCM解密报文
 	body := b.Bytes()
+	fmt.Fprintf(os.Stderr, "body: %s\n", body)
 	var vb VerifyBody
 	if err = json.Unmarshal(body, &vb); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to json.Unmarshal: %v\n", err)
 		return
 	}
 	resource := &vb.Resource
-	plainText, e := utils.DecryptAES256GCM(mchConf.WxpayV3Key, resource.AssociatedData, resource.Nonce, resource.Nonce)
+	plainText, e := utils.DecryptAES256GCM(mchConf.WxpayV3Key, resource.AssociatedData, resource.Nonce, resource.Ciphertext)
 	if e != nil {
+		fmt.Fprintf(os.Stderr, "failed to utils.DecryptAES256GCM: %v\n", e)
 		err = e
 		return
 	}

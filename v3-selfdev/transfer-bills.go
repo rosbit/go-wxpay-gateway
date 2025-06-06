@@ -6,13 +6,14 @@ import (
 	"github.com/rosbit/gnet"
 	"go-wxpay-gateway/conf"
 	"encoding/json"
+	"bytes"
 	"fmt"
+	"os"
 	"net/http"
 )
 
 type createTransferBillsRequest struct {
 	*CreateTransferBillsRequest
-	EncryptedUserName string `json:"user_name,omitempty"`
 }
 
 // 发起转账: https://pay.weixin.qq.com/doc/v3/merchant/4012716434
@@ -52,12 +53,12 @@ func CreateTransferBills(appName string, req *CreateTransferBillsRequest) (resp 
 	}
 
 	if len(req.UserName) > 0 {
-		encryptedUser, e := utils.EncryptPKCS1v15WithPublicKey(req.UserName, wechatpayPublicKey)
+		encryptedUser, e := utils.EncryptOAEPWithPublicKey(req.UserName, wechatpayPublicKey)
 		if e != nil {
 			err = e
 			return
 		}
-		realReq.EncryptedUserName = encryptedUser
+		realReq.UserName = encryptedUser
 	}
 
 	timestamp, nonce, bodyStr, signature, e := MakeSignature(mchPrivateKey, "POST", "/v3/fund-app/mch-transfer/transfer-bills", realReq, true)
@@ -65,19 +66,24 @@ func CreateTransferBills(appName string, req *CreateTransferBillsRequest) (resp 
 		err = e
 		return
 	}
+	fmt.Fprintf(os.Stderr, "timestamp: %s, nonce: %s, bodyStr: %s, signature: %s\n", timestamp, nonce, bodyStr, signature)
+	headers := map[string]string{
+		"Content-Type":     "application/json",
+		"Accept":           "application/json",
+		"Wechatpay-Serial": mchConf.WxpayPubkeyId,
+		"Authorization": fmt.Sprintf(
+			"WECHATPAY2-SHA256-RSA2048 mchid=\"%s\",nonce_str=\"%s\",timestamp=\"%s\",serial_no=\"%s\",signature=\"%s\"",
+			mchConf.MchId, nonce, timestamp, mchConf.MchCertSerialNo, signature),
+	}
+	fmt.Fprintf(os.Stderr, "headers: %#v\n", headers)
 
 	status, content, _, e := gnet.JSON("https://api.mch.weixin.qq.com/v3/fund-app/mch-transfer/transfer-bills",
 		gnet.M("POST"),
-		gnet.Params(bodyStr),
-		gnet.Headers(map[string]string{
-			"Content-Type":     "application/json",
-			"Accept":           "application/json",
-			// "Wechatpay-Serial": mchConf.WxpayPubkeyId,
-			"Authorization": fmt.Sprintf(
-				"WECHATPAY2-SHA256-RSA2048 mchid=\"%s\",nonce_str=\"%s\",timestamp=\"%s\",serial_no=\"%s\",signature=\"%s\"",
-				mchConf.MchId, nonce, timestamp, mchConf.MchCertSerialNo, signature),
-		}),
+		gnet.Params(bytes.NewReader([]byte(bodyStr))),
+		gnet.Headers(headers),
+		gnet.BodyLogger(os.Stderr),
 	)
+
 	if e != nil {
 		err = e
 		return

@@ -11,7 +11,7 @@ import (
 // {
 //  "payApp": "name-of-app-in-wxpay-gateway",
 //  "appid": "APP、小程序、公众号、企业号corpid即为此AppID",
-//  "out_bills_no": "商户系统内部的商家单号，只能由数字、大小写字母组成，在商户系统内部唯一",
+//  "out_bill_no": "商户系统内部的商家单号，只能由数字、大小写字母组成，在商户系统内部唯一",
 //  "transfer_scene_id": " 该笔转账使用的转账场景，可前往“商户平台-产品中心-商家转账”中申请。如：1000（现金营销），1006（企业报销",
 //  "openid": "用户在商户appid下的唯一标识",
 //  "user_name": "收款方真实姓名，转账金额 >= 2,000元时，该笔明细必须填写",
@@ -30,7 +30,6 @@ import (
 func V3TransferBills(c *mgin.Context) {
 	var params struct {
 		PayApp   string `json:"payApp"`
-		RealUserName string `json:"user_name"`
 		v3sd.CreateTransferBillsRequest
 	}
 
@@ -38,7 +37,6 @@ func V3TransferBills(c *mgin.Context) {
 		c.Error(code, err.Error())
 		return
 	}
-	params.CreateTransferBillsRequest.UserName = params.RealUserName
 
 	resp, err := v3sd.CreateTransferBills(params.PayApp, &params.CreateTransferBillsRequest)
 	if err != nil {
